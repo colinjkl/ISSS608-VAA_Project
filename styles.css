@@ -1,1 +1,80 @@
 /* css styles */
+
+*{
+  font-family: Sans-Serif;
+}
+
+#banner {
+  padding: 100px 15% 100px 15%;
+  
+  background-image: url('/images/rain2.jpg');
+  background-position: center;
+  background-size: cover;
+}
+
+#banner .block {
+  position: relative;
+  z-index: 99;
+  color: white;
+  font-size: 18px;
+  font-weight: 300;
+}
+
+#banner .block h1 {
+  color: aquamarine;
+  font-size: 80px;
+  font-weight: 100;
+}
+
+#intro {
+  padding: 100px 15% 100px 15%;
+  
+  background-color: snow;
+  background-size: cover;
+}
+
+#intro .block {
+  position: relative;
+  color: midnightblue;
+  font-size: 18px;
+  font-weight: 300;
+  text-align: center;
+}
+
+#intro .block h1 {
+  color: midnightblue;
+  font-size: 40px;
+  font-weight: 100;
+  text-transform: uppercase;
+  display: inline-block;
+  position: relative;
+}
+
+#intro .block h1:before {
+    content: '';
+    width: 40px;
+    height: 2px;
+    background: midnightblue;
+    position: absolute;
+    top: 22px;
+    left: -60px;
+}
+
+#intro .block h1:after {
+    content: '';
+    width: 40px;
+    height: 2px;
+    background: midnightblue;
+    position: absolute;
+    top: 22px;
+    right: -60px;
+}
+
+#intro .grid_block {
+  padding-top: 100px;
+  position: relative;
+  display: grid;
+  grid-template-columns: auto auto auto;
+  grid-gap: 10px;
+  text-align: center;
+}

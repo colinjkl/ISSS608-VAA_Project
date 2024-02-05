@@ -4,10 +4,17 @@ project:
 website:
   title: "ISSS608-VAA_Project"
   navbar:
+    pinned: true
     left:
       - href: Proposal/Proposal.qmd
         text: Proposal
     right:
+      - href: index.qmd#banner
+        text: Home
+      - href: index.qmd#intro
+        text: Introduction
+      - href: index.qmd#sec-section-3
+        text: Section 3
       - href: index.qmd
         text: Home
       - about.qmd
@@ -16,7 +23,11 @@ format:
   html:
     theme: cosmo
     css: styles.css
-    toc: true
+    toc: false
+    smooth-scroll: true
+    anchor-sections: false
+    grid: 
+      content-mode: auto 
 
 editor: visual
 

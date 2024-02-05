@@ -1,5 +1,57 @@
 ---
-title: "ISSS608-VAA_Project"
+page-layout: custom
+
+listing: 
+  id: sample-listings
+  contents: Proposal
+  type: grid
+  
+section-titles: false
 ---
 
-Welcome to our group's project website!
+#  {#banner .block}
+
+::: block
+<h1>Be Weatherwise <br> or Otherwise!</h1>
+
+How well do we understand our climate in Singapore?
+
+Should we be expecting more rain or shine? Let's find out!
+:::
+
+#  {#intro .block}
+
+::: block
+<h1>Introduction</h1>
+
+some intro stuff some intro stuff some intro stuff some intro stuff some intro stuff some intro stuff some intro stuff
+
+some intro stuff some intro stuff some intro stuff some intro stuff some intro stuff some intro stuff some intro stuff
+
+some intro stuff some intro stuff some intro stuff some intro stuff some intro stuff some intro stuff some intro stuff
+:::
+
+::: grid_block
+::: {.col-xs-6 .col-md-4}
+![](images/rain_icon.svg){fig-align="center" width="77" height="NaN"}
+
+asdf
+:::
+
+::: {.col-xs-6 .col-md-4}
+![](images/sun_icon.svg){fig-align="center" width="77"}
+
+asdf
+:::
+
+::: {.col-xs-6 .col-md-4}
+![](images/wind_icon.svg){fig-align="center" width="77"}
+
+asdf
+:::
+:::
+
+# Section 3 {#sec-section-3}
+
+::: {#sample-listings}
+:::

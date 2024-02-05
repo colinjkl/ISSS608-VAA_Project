@@ -3,3 +3,5 @@ title: "Project Proposal"
 ---
 
 This is our project proposal page
+
+![](/images/Proposal1.jpg){fig-align="center"}
