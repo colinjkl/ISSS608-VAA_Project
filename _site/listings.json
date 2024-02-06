@@ -2,7 +2,9 @@
   {
     "listing": "/index.html",
     "items": [
-      "/Proposal/Proposal.html"
+      "/Poster/Poster.html",
+      "/Proposal/Proposal.html",
+      "/Shinyapp/Shinyapp.html"
     ]
   }
 ]

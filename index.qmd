@@ -3,11 +3,16 @@ page-layout: custom
 
 listing: 
   id: sample-listings
-  contents: Proposal
+  contents: 
+    - "Proposal/Proposal.qmd"
+    - "Shinyapp/Shinyapp.qmd"
+    - "Poster/Poster.qmd"
   type: grid
   
 section-titles: false
 ---
+
+#  {#top}
 
 #  {#banner .block}
 
@@ -35,27 +40,51 @@ some intro stuff some intro stuff some intro stuff some intro stuff some intro s
 some intro stuff some intro stuff some intro stuff some intro stuff some intro stuff some intro stuff some intro stuff
 :::
 
+#  {#figures .block}
+
+::: block
+<h1>At a Glance</h1>
+:::
+
 ::: grid_block
 ::: {.col-xs-6 .col-md-4}
-![](images/rain_icon.svg){fig-align="center" width="77" height="NaN"}
+<h2>88</h2>
 
-asdf
+ml of rain fell in the year of 2023
 :::
 
 ::: {.col-xs-6 .col-md-4}
-![](images/sun_icon.svg){fig-align="center" width="77"}
+<h2>37</h2>
 
-asdf
+degree celsius recorded for month of March
 :::
 
 ::: {.col-xs-6 .col-md-4}
-![](images/wind_icon.svg){fig-align="center" width="77"}
+<h2>25</h2>
 
-asdf
+km/hr average wind speed
 :::
 :::
 
-# Section 3 {#sec-section-3}
+#  {#headline .block}
+
+::: block
+<h1>2023 was Singapore's 4th hottest year on record</h1>
+
+Nearly 20 temperature-related records in Singapore were matched or broken. This included the highest daily temperature of 37 deg C recorded on May 13, 2023, in Ang Mo Kio, which tied with that recorded in Tengah in 1983.
+
+With a mean temperature of 29.5 deg C, May 2023 matched March 1998 for the warmest month on record.
+
+[Source](https://www.straitstimes.com/singapore/environment/2023-was-singapore-s-4th-hottest-year-on-record-tying-with-1997-and-2015#:~:text=Nearly%2020%20temperature%2Drelated%20records,the%20warmest%20month%20on%20record.)
+:::
+
+#  {#storyboard .block}
+
+::: block
+<h1>Our Works</h1>
+
+<br>
+:::
 
 ::: {#sample-listings}
 :::

@@ -3,20 +3,23 @@ project:
 
 website:
   title: "ISSS608-VAA_Project"
+  back-to-top-navigation: true
   navbar:
     pinned: true
     left:
       - href: Proposal/Proposal.qmd
         text: Proposal
     right:
-      - href: index.qmd#banner
+      - href: index.qmd#top
         text: Home
       - href: index.qmd#intro
         text: Introduction
-      - href: index.qmd#sec-section-3
-        text: Section 3
+      - href: index.qmd#figures
+        text: At a Glance
+      - href: index.qmd#storyboard
+        text: Our Works
   page-footer: 
-    left: "some team's name" 
+    left: "some team name" 
     right: 
       - icon: github
 

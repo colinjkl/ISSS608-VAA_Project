@@ -2,8 +2,6 @@
 title: "Project Proposal"
 ---
 
-This is our project proposal page
-
 ![](/images/Proposal1.jpg){fig-align="center"}
 
 # Introduction
@@ -36,7 +34,7 @@ We will be using data visualizations to explore trends in our weather and temper
 
 We will be using time-series analysis to forecast temperature changes in the near future. In addition, sensitivity analysis will be used to address the uncertainties in the forecast.
 
-# Website and ShinyApp layout 
+# Website and ShinyApp layout
 
 Not sure if we want to add this... seems like its too much
 

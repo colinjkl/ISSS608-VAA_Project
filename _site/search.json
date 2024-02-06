@@ -1,10 +1,24 @@
 [
   {
-    "objectID": "Proposal/Proposal.html",
-    "href": "Proposal/Proposal.html",
-    "title": "Project Proposal",
+    "objectID": "Shinyapp/Shinyapp.html",
+    "href": "Shinyapp/Shinyapp.html",
+    "title": "Shinyapp",
     "section": "",
-    "text": "This is our project proposal page"
+    "text": "Sorry! Still Work in Progress\n\n\n\n\n\n Back to top"
+  },
+  {
+    "objectID": "Poster/Poster.html",
+    "href": "Poster/Poster.html",
+    "title": "Poster",
+    "section": "",
+    "text": "Sorry! Still Work in Progress\n\n\n\n\n\n Back to top"
+  },
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "About this site\n\n1 + 1\n\n[1] 2\n\n\n\n\n\n Back to top"
   },
   {
     "objectID": "Proposal/Proposal.html#eda",
@@ -19,12 +33,5 @@
     "title": "Project Proposal",
     "section": "Forecast",
     "text": "Forecast\nWe will be using time-series analysis to forecast temperature changes in the near future. In addition, sensitivity analysis will be used to address the uncertainties in the forecast."
-  },
-  {
-    "objectID": "about.html",
-    "href": "about.html",
-    "title": "About",
-    "section": "",
-    "text": "About this site\n\n1 + 1\n\n[1] 2"
   }
 ]

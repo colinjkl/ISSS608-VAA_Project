@@ -12,12 +12,25 @@
 #7DB9B6 teal
 */
 
-.menu .active a {
+figcaption{
+   text-align: center;
+}
+
+.menu a:active {
   color: #E96479;
 }
 
+#top {
+  padding: 0;
+  height: 0;
+  line-height: 0;
+  display: block;
+  overflow: hidden;
+  position: relative;
+}
+
 #banner {
-  padding: 100px 15% 100px 15%;
+  padding: 100px 15% 200px 15%;
   
   background-image: url('images/sunny.jpg');
   background-position: center;
@@ -71,7 +84,7 @@
 }
 
 #intro {
-  padding: 100px 15% 100px 15%;
+  padding: 100px 15% 200px 15%;
   
   background-color: #F5E9CF;
   background-size: cover;
@@ -114,11 +127,147 @@
     right: -60px;
 }
 
-#intro .grid_block {
-  padding-top: 100px;
+#figures {
+  padding: 100px 15% 200px 15%;
+  
+  background-color: #4D455D;
+  background-size: cover;
+}
+
+#figures .block {
+  position: relative;
+  color: white;
+  font-size: 18px;
+  font-weight: 300;
+  text-align: center;
+}
+
+#figures .block h1 {
+  color: white;
+  font-size: 40px;
+  font-weight: 100;
+  text-transform: uppercase;
+  display: inline-block;
+  position: relative;
+}
+
+#figures .block h1:before {
+    content: '';
+    width: 40px;
+    height: 2px;
+    background: white;
+    position: absolute;
+    top: 22px;
+    left: -60px;
+}
+
+#figures .block h1:after {
+    content: '';
+    width: 40px;
+    height: 2px;
+    background: white;
+    position: absolute;
+    top: 22px;
+    right: -60px;
+}
+
+#figures .grid_block {
+  padding-top: 50px;
   position: relative;
   display: grid;
   grid-template-columns: auto auto auto;
   grid-gap: 10px;
   text-align: center;
+  color: white;
 }
+
+#figures .grid_block h2 {
+  text-align: center;
+  border: none;
+  color: #E96479;
+  font-size: 80px;
+}
+
+#headline {
+  padding: 100px 15% 200px 15%;
+  
+  background-image: url("images/hot day.jpg");
+  background-position: center;
+  background-size: cover;
+  position: relative;
+}
+
+#headline:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to left, transparent 0%, black 100%);
+  height: 100%;
+}
+
+#headline .block {
+  padding: 0 50% 0 0;
+  position: relative;
+  color: white;
+  font-size: 18px;
+  font-weight: 300;
+  text-align: left;
+}
+
+#headline .block h1 {
+  color: #E96479;
+  font-size: 60px;
+  font-weight: 100;
+}
+
+#headline .block a {
+  color: #E96479;
+}
+
+#storyboard {
+  padding: 100px 15% 100px 15%;
+  
+  background-color: #F5E9CF;
+  background-size: cover;
+}
+
+#storyboard .block {
+  position: relative;
+  color: #4D455D;
+  font-size: 18px;
+  font-weight: 300;
+  text-align: center;
+}
+
+#storyboard .block h1 {
+  color: #4D455D;
+  font-size: 40px;
+  font-weight: 100;
+  text-transform: uppercase;
+  display: inline-block;
+  position: relative;
+}
+
+#storyboard .block h1:before {
+    content: '';
+    width: 40px;
+    height: 2px;
+    background: #4D455D;
+    position: absolute;
+    top: 22px;
+    left: -60px;
+}
+
+#storyboard .block h1:after {
+    content: '';
+    width: 40px;
+    height: 2px;
+    background: #4D455D;
+    position: absolute;
+    top: 22px;
+    right: -60px;
+}
+
