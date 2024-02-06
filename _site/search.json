@@ -7,6 +7,20 @@
     "text": "This is our project proposal page"
   },
   {
+    "objectID": "Proposal/Proposal.html#eda",
+    "href": "Proposal/Proposal.html#eda",
+    "title": "Project Proposal",
+    "section": "EDA",
+    "text": "EDA\nWe will be using data visualizations to explore trends in our weather and temperature for the past few decades"
+  },
+  {
+    "objectID": "Proposal/Proposal.html#forecast",
+    "href": "Proposal/Proposal.html#forecast",
+    "title": "Project Proposal",
+    "section": "Forecast",
+    "text": "Forecast\nWe will be using time-series analysis to forecast temperature changes in the near future. In addition, sensitivity analysis will be used to address the uncertainties in the forecast."
+  },
+  {
     "objectID": "about.html",
     "href": "about.html",
     "title": "About",

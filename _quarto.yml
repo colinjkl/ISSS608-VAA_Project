@@ -15,13 +15,14 @@ website:
         text: Introduction
       - href: index.qmd#sec-section-3
         text: Section 3
-      - href: index.qmd
-        text: Home
-      - about.qmd
+  page-footer: 
+    left: "some team's name" 
+    right: 
+      - icon: github
 
 format:
   html:
-    theme: cosmo
+    theme: [cosmo, theme-styles.scss]
     css: styles.css
     toc: false
     smooth-scroll: true

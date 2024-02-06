@@ -5,3 +5,45 @@ title: "Project Proposal"
 This is our project proposal page
 
 ![](/images/Proposal1.jpg){fig-align="center"}
+
+# Introduction
+
+Paragraph describing climate change and how it is a pressing issue
+
+# Problems
+
+The list of exact issues we are trying to find. For example:
+
+1.  Media outlets often use misleading numbers for publicity purposes. Averages or outlying numbers do not tell the whole story
+
+2.  Singapore may be a small country but even so different parts are subjected to varying weather conditions
+
+3.  Time of the year is also a big factor when talking about climate impact
+
+We aim to develop an app that can inform the community about temperature/weather trends effortlessly with eye-catching and interactive visualizations.
+
+# Data
+
+description of our data sources
+
+# Methodology
+
+## EDA
+
+We will be using data visualizations to explore trends in our weather and temperature for the past few decades
+
+## Forecast
+
+We will be using time-series analysis to forecast temperature changes in the near future. In addition, sensitivity analysis will be used to address the uncertainties in the forecast.
+
+# Website and ShinyApp layout 
+
+Not sure if we want to add this... seems like its too much
+
+# Project Management and Timeline
+
+Main roles:
+
+Timeline:
+
+add screenshot here

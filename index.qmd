@@ -17,6 +17,10 @@ section-titles: false
 How well do we understand our climate in Singapore?
 
 Should we be expecting more rain or shine? Let's find out!
+
+<br>
+
+<a href="https://www.nccs.gov.sg/singapores-climate-action/impact-of-climate-change-in-singapore/"><button>Find out more</button></a>
 :::
 
 #  {#intro .block}
