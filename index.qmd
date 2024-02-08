@@ -19,7 +19,7 @@ section-titles: false
 ::: block
 <h1>Be Weatherwise <br> or Otherwise!</h1>
 
-How well do we understand our climate in Singapore?
+How well do we understand our weather in Singapore?
 
 Should we be expecting more rain or shine? Let's find out!
 
@@ -32,6 +32,8 @@ Should we be expecting more rain or shine? Let's find out!
 
 ::: block
 <h1>Introduction</h1>
+
+<br>
 
 some intro stuff some intro stuff some intro stuff some intro stuff some intro stuff some intro stuff some intro stuff
 
@@ -48,21 +50,30 @@ some intro stuff some intro stuff some intro stuff some intro stuff some intro s
 
 ::: grid_block
 ::: {.col-xs-6 .col-md-4}
-<h2>88</h2>
+<h2>##</h2>
 
-ml of rain fell in the year of 2023
+Some weather highlights
+Some weather highlights
+Some weather highlights
+Some weather highlights
 :::
 
 ::: {.col-xs-6 .col-md-4}
-<h2>37</h2>
+<h2>##</h2>
 
-degree celsius recorded for month of March
+Some weather highlights
+Some weather highlights
+Some weather highlights
+Some weather highlights
 :::
 
 ::: {.col-xs-6 .col-md-4}
-<h2>25</h2>
+<h2>##</h2>
 
-km/hr average wind speed
+Some weather highlights
+Some weather highlights
+Some weather highlights
+Some weather highlights
 :::
 :::
 

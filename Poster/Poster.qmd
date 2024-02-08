@@ -2,4 +2,4 @@
 title: "Poster"
 ---
 
-![Sorry! Still Work in Progress](/images/bugcat wip.gif){fig-align="center"}
+![Sorry! Still Work in Progress](/images/bugcat%20wip.gif){fig-align="center"}

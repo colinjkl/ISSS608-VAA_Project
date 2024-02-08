@@ -12,12 +12,13 @@
 #7DB9B6 teal
 */
 
+
 figcaption{
    text-align: center;
 }
 
 .menu a:active {
-  color: #E96479;
+  color: #DE9E48;
 }
 
 #top {
@@ -32,7 +33,7 @@ figcaption{
 #banner {
   padding: 100px 15% 200px 15%;
   
-  background-image: url('/images/sunny.jpg');
+  background-image: url('/images/sg city.jpg');
   background-position: center;
   background-size: cover;
   position: relative;
@@ -59,8 +60,8 @@ figcaption{
 
 #banner .block h1 {
   color: #E96479;
-  font-size: 80px;
-  font-weight: 100;
+  font-size: 60px;
+  font-weight: 900;
 }
 
 #banner .block button {
@@ -109,22 +110,12 @@ figcaption{
 
 #intro .block h1:before {
     content: '';
-    width: 40px;
-    height: 2px;
-    background: #4D455D;
     position: absolute;
-    top: 22px;
-    left: -60px;
-}
-
-#intro .block h1:after {
-    content: '';
-    width: 40px;
-    height: 2px;
-    background: #4D455D;
-    position: absolute;
-    top: 22px;
-    right: -60px;
+    width: 50%;
+    height: 1px;
+    bottom: -5px;
+    left: 25%;
+    border-bottom: 2px solid #4D455D;
 }
 
 #figures {
@@ -153,22 +144,12 @@ figcaption{
 
 #figures .block h1:before {
     content: '';
-    width: 40px;
-    height: 2px;
-    background: white;
     position: absolute;
-    top: 22px;
-    left: -60px;
-}
-
-#figures .block h1:after {
-    content: '';
-    width: 40px;
-    height: 2px;
-    background: white;
-    position: absolute;
-    top: 22px;
-    right: -60px;
+    width: 50%;
+    height: 1px;
+    bottom: -5px;
+    left: 25%;
+    border-bottom: 2px solid white;
 }
 
 #figures .grid_block {
@@ -176,7 +157,7 @@ figcaption{
   position: relative;
   display: grid;
   grid-template-columns: auto auto auto;
-  grid-gap: 10px;
+  grid-gap: 30px;
   text-align: center;
   color: white;
 }
@@ -191,7 +172,7 @@ figcaption{
 #headline {
   padding: 100px 15% 200px 15%;
   
-  background-image: url("images/hot day.jpg");
+  background-image: url("images/sg city 2.jpg");
   background-position: center;
   background-size: cover;
   position: relative;
@@ -253,21 +234,12 @@ figcaption{
 
 #storyboard .block h1:before {
     content: '';
-    width: 40px;
-    height: 2px;
-    background: #4D455D;
     position: absolute;
-    top: 22px;
-    left: -60px;
+    width: 50%;
+    height: 1px;
+    bottom: -5px;
+    left: 25%;
+    border-bottom: 2px solid #4D455D;
 }
 
-#storyboard .block h1:after {
-    content: '';
-    width: 40px;
-    height: 2px;
-    background: #4D455D;
-    position: absolute;
-    top: 22px;
-    right: -60px;
-}
 
