@@ -1,28 +1,57 @@
 ---
 title: "Project Proposal"
+date: "09-feb-2024"
+date-modified: "last-modified"
+execute: 
+  eval: true
+  echo: true
+  warning: false
+editor: visual
 ---
 
 ![](/images/Proposal1.jpg){fig-align="center"}
 
-# Introduction
+# Motivation
 
-Paragraph describing climate change and how it is a pressing issue
+Singapore, known for its dynamic economy and tropical climate, faces unique challenges that significantly impact various aspects of life, infrastructure, and economy. Given the strategic location and vulnerability to weather-induced events such as heavy rainfall, intense heatwaves, and sea level rise, understanding historical weather patterns is crucial for effective planning, risk management, and resilience enhancement.
 
 # Problems
 
-The list of exact issues we are trying to find. For example:
+The project is to leverage the visualization techniques and advanced analytics to visualize and analyse the historical weather data in Singapore. By focusing on the climate trends and patterns, we aim to address several key problems:
 
-1.  Media outlets often use misleading numbers for publicity purposes. Averages or outlying numbers do not tell the whole story
+**Enhancing weather forecasting accuracy**
 
-2.  Singapore may be a small country but even so different parts are subjected to varying weather conditions
+Accurate weather forecasts are critical for various sectors, such as transportation, construction, and tourism. Incorporating local factors (e.g. geographical data), historical data can be used to develop predictive models for improving the accuracy of weather forecasting, including prediction of short-term weather fluctuation, extreme weather events, and seasonal climate variations with reliability.
 
-3.  Time of the year is also a big factor when talking about climate impact
+**Understanding local climate trends**
 
-We aim to develop an app that can inform the community about temperature/weather trends effortlessly with eye-catching and interactive visualizations.
+By analysing historical weather data, we can gain insights into long-term climate trends in Singapore, including changes in temperature, rainfall patterns, and humidity levels. Understanding these trends is crucial for assessing the impacts of climate change and developing effective adaptation strategies to address climate change impacts.
 
 # Data
 
-description of our data sources
+The dataset that we are going to use for this project is the historical weather data downloaded from [Meteorological Service Singapore](https://www.weather.gov.sg/home/). The data covers 4 aspects, which are:
+
+-   Rainfall
+
+-   Temperature
+
+-   Relative Humidity
+
+-   Wind
+
+In addition, previous research showed that weather has a correlation with the outbreak of dengue fever infection, especially rainfall and temperature (2022. Yawen. W., Yucheng, W., etc. ). We could also make use of the visualizations to study the strength of association between weather changes and dengue cases in Singapore. The data of weekly dengue cases by cluster can be downloaded from [SGCharts: Outbreak](https://outbreak.sgcharts.com/data) website. The dataset consists of several columns as follows:
+
+-   Date of data
+
+-   Location (cluster)
+
+-   Longitude
+
+-   Latitude
+
+-   Cases with onset in last 2 weeks
+
+-   Cases since start of cluster
 
 # Methodology
 
@@ -32,16 +61,54 @@ We will be using data visualizations to explore trends in our weather and temper
 
 ## Forecast
 
-We will be using time-series analysis to forecast temperature changes in the near future. In addition, sensitivity analysis will be used to address the uncertainties in the forecast.
+We will be using time-series analysis to forecast weather changes in the near future by regions.
 
-# Website and ShinyApp layout
+## CDA
 
-Not sure if we want to add this... seems like its too much
+We will be using CDA to evalute our predictions via significance, sensitivity analysis, and confidence.
+
+# ShinyApp layout
+
+The app will have 2 main functions: Dashboard and Forecast.
+
+-   Dashboard: Contains interactive visualizations that explores historical trends in Singapore’s weather
+
+-   Forecast: Contains models that are used to predict Singapore’s weather factors.
+
+## Dashboard
+
+### Overall
+
+The dashboard layout is further divided into 3 (or 4) sections; Temperature, Rainfall, Wind (and humidity, which may be a composite factor of temperature and rain).
+
+We intend for users to be able to filter by multiple levels as indicated below:
+
+-   By time period – slider bar
+
+-   By min/max/mean – checkbox (only choose 1)
+
+-   By day/month/year - checkbox (only choose 1)
+
+If time permit, we will add animations to the map which shows the gradual change in temp/rain/wind over time across the different regions.
+
+![](Dashboard%20Overall.jpg){fig-align="center"}
+
+### Trend
+
+To give users a clearer view of changes over time, the Trend tab utilizes a parallel coordinate map that shows temp/rain/wind against time. Here, each line (and color) represents a different weather station. We can also added the vertical histograms that shows the distribution as well as outlier points.
+
+![](Dashboard%20Trend.jpg){fig-align="center"}
+
+## Forecast
+
+In the forecast tab, users will be able to run models to predict temp/rain/wind changes.
+
+Here, we plan to use ARIMA forecasting methods. The user will be able to choose from a selection of parameters before running the model.
+
+![](Forecast.jpg){fig-align="center"}
+
+Finally, we will include a tab for CDA to validate our results.
 
 # Project Management and Timeline
 
-Main roles:
-
-Timeline:
-
-add screenshot here
+![](Timeline.jpg){fig-align="center"}

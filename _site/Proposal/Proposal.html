@@ -6,6 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="dcterms.date" content="2024-02-09">
 
 <title>ISSS608-VAA_Project - Project Proposal</title>
 <style>
@@ -127,7 +128,19 @@ ul.task-list li input[type="checkbox"] {
 <div class="quarto-title-meta">
 
     
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">February 9, 2024</p>
+    </div>
+  </div>
   
+    <div>
+    <div class="quarto-title-meta-heading">Modified</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date-modified">February 9, 2024</p>
+    </div>
+  </div>
     
   </div>
   
@@ -139,23 +152,36 @@ ul.task-list li input[type="checkbox"] {
 <p><img src="..\images/Proposal1.jpg" class="img-fluid figure-img"></p>
 </figure>
 </div>
-<section id="introduction" class="level1">
-<h1>Introduction</h1>
-<p>Paragraph describing climate change and how it is a pressing issue</p>
+<section id="motivation" class="level1">
+<h1>Motivation</h1>
+<p>Singapore, known for its dynamic economy and tropical climate, faces unique challenges that significantly impact various aspects of life, infrastructure, and economy. Given the strategic location and vulnerability to weather-induced events such as heavy rainfall, intense heatwaves, and sea level rise, understanding historical weather patterns is crucial for effective planning, risk management, and resilience enhancement.</p>
 </section>
 <section id="problems" class="level1">
 <h1>Problems</h1>
-<p>The list of exact issues we are trying to find. For example:</p>
-<ol type="1">
-<li><p>Media outlets often use misleading numbers for publicity purposes. Averages or outlying numbers do not tell the whole story</p></li>
-<li><p>Singapore may be a small country but even so different parts are subjected to varying weather conditions</p></li>
-<li><p>Time of the year is also a big factor when talking about climate impact</p></li>
-</ol>
-<p>We aim to develop an app that can inform the community about temperature/weather trends effortlessly with eye-catching and interactive visualizations.</p>
+<p>The project is to leverage the visualization techniques and advanced analytics to visualize and analyse the historical weather data in Singapore. By focusing on the climate trends and patterns, we aim to address several key problems:</p>
+<p><strong>Enhancing weather forecasting accuracy</strong></p>
+<p>Accurate weather forecasts are critical for various sectors, such as transportation, construction, and tourism. Incorporating local factors (e.g.&nbsp;geographical data), historical data can be used to develop predictive models for improving the accuracy of weather forecasting, including prediction of short-term weather fluctuation, extreme weather events, and seasonal climate variations with reliability.</p>
+<p><strong>Understanding local climate trends</strong></p>
+<p>By analysing historical weather data, we can gain insights into long-term climate trends in Singapore, including changes in temperature, rainfall patterns, and humidity levels. Understanding these trends is crucial for assessing the impacts of climate change and developing effective adaptation strategies to address climate change impacts.</p>
 </section>
 <section id="data" class="level1">
 <h1>Data</h1>
-<p>description of our data sources</p>
+<p>The dataset that we are going to use for this project is the historical weather data downloaded from <a href="https://www.weather.gov.sg/home/">Meteorological Service Singapore</a>. The data covers 4 aspects, which are:</p>
+<ul>
+<li><p>Rainfall</p></li>
+<li><p>Temperature</p></li>
+<li><p>Relative Humidity</p></li>
+<li><p>Wind</p></li>
+</ul>
+<p>In addition, previous research showed that weather has a correlation with the outbreak of dengue fever infection, especially rainfall and temperature (2022. Yawen. W., Yucheng, W., etc. ). We could also make use of the visualizations to study the strength of association between weather changes and dengue cases in Singapore. The data of weekly dengue cases by cluster can be downloaded from <a href="https://outbreak.sgcharts.com/data">SGCharts: Outbreak</a> website. The dataset consists of several columns as follows:</p>
+<ul>
+<li><p>Date of data</p></li>
+<li><p>Location (cluster)</p></li>
+<li><p>Longitude</p></li>
+<li><p>Latitude</p></li>
+<li><p>Cases with onset in last 2 weeks</p></li>
+<li><p>Cases since start of cluster</p></li>
+</ul>
 </section>
 <section id="methodology" class="level1">
 <h1>Methodology</h1>
@@ -165,18 +191,67 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="forecast" class="level2">
 <h2 data-anchor-id="forecast">Forecast</h2>
-<p>We will be using time-series analysis to forecast temperature changes in the near future. In addition, sensitivity analysis will be used to address the uncertainties in the forecast.</p>
+<p>We will be using time-series analysis to forecast weather changes in the near future by regions.</p>
+</section>
+<section id="cda" class="level2">
+<h2 data-anchor-id="cda">CDA</h2>
+<p>We will be using CDA to evalute our predictions via significance, sensitivity analysis, and confidence.</p>
 </section>
 </section>
-<section id="website-and-shinyapp-layout" class="level1">
-<h1>Website and ShinyApp layout</h1>
-<p>Not sure if we want to add this… seems like its too much</p>
+<section id="shinyapp-layout" class="level1">
+<h1>ShinyApp layout</h1>
+<p>The app will have 2 main functions: Dashboard and Forecast.</p>
+<ul>
+<li><p>Dashboard: Contains interactive visualizations that explores historical trends in Singapore’s weather</p></li>
+<li><p>Forecast: Contains models that are used to predict Singapore’s weather factors.</p></li>
+</ul>
+<section id="dashboard" class="level2">
+<h2 data-anchor-id="dashboard">Dashboard</h2>
+<section id="overall" class="level3">
+<h3 data-anchor-id="overall">Overall</h3>
+<p>The dashboard layout is further divided into 3 (or 4) sections; Temperature, Rainfall, Wind (and humidity, which may be a composite factor of temperature and rain).</p>
+<p>We intend for users to be able to filter by multiple levels as indicated below:</p>
+<ul>
+<li><p>By time period – slider bar</p></li>
+<li><p>By min/max/mean – checkbox (only choose 1)</p></li>
+<li><p>By day/month/year - checkbox (only choose 1)</p></li>
+</ul>
+<p>If time permit, we will add animations to the map which shows the gradual change in temp/rain/wind over time across the different regions.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Dashboard Overall.jpg" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</section>
+<section id="trend" class="level3">
+<h3 data-anchor-id="trend">Trend</h3>
+<p>To give users a clearer view of changes over time, the Trend tab utilizes a parallel coordinate map that shows temp/rain/wind against time. Here, each line (and color) represents a different weather station. We can also added the vertical histograms that shows the distribution as well as outlier points.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Dashboard Trend.jpg" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</section>
+</section>
+<section id="forecast-1" class="level2">
+<h2 data-anchor-id="forecast-1">Forecast</h2>
+<p>In the forecast tab, users will be able to run models to predict temp/rain/wind changes.</p>
+<p>Here, we plan to use ARIMA forecasting methods. The user will be able to choose from a selection of parameters before running the model.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Forecast.jpg" class="img-fluid figure-img"></p>
+</figure>
+</div>
+<p>Finally, we will include a tab for CDA to validate our results.</p>
+</section>
 </section>
 <section id="project-management-and-timeline" class="level1">
 <h1>Project Management and Timeline</h1>
-<p>Main roles:</p>
-<p>Timeline:</p>
-<p>add screenshot here</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Timeline.jpg" class="img-fluid figure-img"></p>
+</figure>
+</div>
 
 
 </section>

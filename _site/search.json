@@ -32,6 +32,27 @@
     "href": "Proposal/Proposal.html#forecast",
     "title": "Project Proposal",
     "section": "Forecast",
-    "text": "Forecast\nWe will be using time-series analysis to forecast temperature changes in the near future. In addition, sensitivity analysis will be used to address the uncertainties in the forecast."
+    "text": "Forecast\nWe will be using time-series analysis to forecast weather changes in the near future by regions."
+  },
+  {
+    "objectID": "Proposal/Proposal.html#cda",
+    "href": "Proposal/Proposal.html#cda",
+    "title": "Project Proposal",
+    "section": "CDA",
+    "text": "CDA\nWe will be using CDA to evalute our predictions via significance, sensitivity analysis, and confidence."
+  },
+  {
+    "objectID": "Proposal/Proposal.html#dashboard",
+    "href": "Proposal/Proposal.html#dashboard",
+    "title": "Project Proposal",
+    "section": "Dashboard",
+    "text": "Dashboard\n\nOverall\nThe dashboard layout is further divided into 3 (or 4) sections; Temperature, Rainfall, Wind (and humidity, which may be a composite factor of temperature and rain).\nWe intend for users to be able to filter by multiple levels as indicated below:\n\nBy time period – slider bar\nBy min/max/mean – checkbox (only choose 1)\nBy day/month/year - checkbox (only choose 1)\n\nIf time permit, we will add animations to the map which shows the gradual change in temp/rain/wind over time across the different regions.\n\n\n\n\n\n\n\nTrend\nTo give users a clearer view of changes over time, the Trend tab utilizes a parallel coordinate map that shows temp/rain/wind against time. Here, each line (and color) represents a different weather station. We can also added the vertical histograms that shows the distribution as well as outlier points."
+  },
+  {
+    "objectID": "Proposal/Proposal.html#forecast-1",
+    "href": "Proposal/Proposal.html#forecast-1",
+    "title": "Project Proposal",
+    "section": "Forecast",
+    "text": "Forecast\nIn the forecast tab, users will be able to run models to predict temp/rain/wind changes.\nHere, we plan to use ARIMA forecasting methods. The user will be able to choose from a selection of parameters before running the model.\n\n\n\n\n\nFinally, we will include a tab for CDA to validate our results."
   }
 ]
