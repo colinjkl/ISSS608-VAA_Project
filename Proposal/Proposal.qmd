@@ -39,7 +39,7 @@ The dataset that we are going to use for this project is the historical weather 
 
 -   Wind
 
-In addition, previous research showed that weather has a correlation with the outbreak of dengue fever infection, especially rainfall and temperature (2022. Yawen. W., Yucheng, W., etc. ). We could also make use of the visualizations to study the strength of association between weather changes and dengue cases in Singapore. The data of weekly dengue cases by cluster can be downloaded from [SGCharts: Outbreak](https://outbreak.sgcharts.com/data) website. The dataset consists of several columns as follows:
+In addition, previous research showed that weather has a correlation with the outbreak of dengue fever infection, especially rainfall and temperature (Wang et al., 2022). We could also make use of the visualizations to study the strength of association between weather changes and dengue cases in Singapore. The data of weekly dengue cases by cluster can be downloaded from [SGCharts: Outbreak](https://outbreak.sgcharts.com/data) website. The dataset consists of several columns as follows:
 
 -   Date of data
 
@@ -140,3 +140,7 @@ Finally, we will include a tab for CDA to evaluate the performance of the traine
 # Project Management and Timeline
 
 ![](Timeline.jpg){fig-align="center"}
+
+# Reference
+
+Wang, Y.W., Wei, Y.C., Li, K.H., Jiang, X.T., Li, C.L., Yue, Q.Y., Zee, B., Chong, K.C. (2022). Impact of extreme weather on dengue fever infection in four Asian countries: A modelling analysis. *Environment International*. 169. [https://doi.org/10.1016/j.envint.2022.107518](https://doi.org/10.1016/j.envint.2022.107518)
