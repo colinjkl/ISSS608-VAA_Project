@@ -32,7 +32,7 @@
     "href": "Proposal/Proposal.html#forecast",
     "title": "Project Proposal",
     "section": "Forecast",
-    "text": "Forecast\nWe will be using time-series analysis to forecast weather changes in the near future by regions."
+    "text": "Forecast\nIn the forecast tab, users will be able to run models to predict temp/rain/wind changes.\nHere, the users will be able to choose from a selection of the models mentioned in the previous section, and define the parameters associated with that model before running the model.\n\n\n\n\n\nFinally, we will include a tab for CDA to evaluate the performance of the trained model."
   },
   {
     "objectID": "Proposal/Proposal.html#cda",
@@ -46,7 +46,7 @@
     "href": "Proposal/Proposal.html#dashboard",
     "title": "Project Proposal",
     "section": "Dashboard",
-    "text": "Dashboard\n\nOverall\nThe dashboard layout is further divided into 3 (or 4) sections; Temperature, Rainfall, Wind (and humidity, which may be a composite factor of temperature and rain).\nWe intend for users to be able to filter by multiple levels as indicated below:\n\nBy time period – slider bar\nBy min/max/mean – checkbox (only choose 1)\nBy day/month/year - checkbox (only choose 1)\n\nIf time permit, we will add animations to the map which shows the gradual change in temp/rain/wind over time across the different regions.\n\n\n\n\n\n\n\nTrend\nTo give users a clearer view of changes over time, the Trend tab utilizes a parallel coordinate map that shows temp/rain/wind against time. Here, each line (and color) represents a different weather station. We can also added the vertical histograms that shows the distribution as well as outlier points."
+    "text": "Dashboard\n\nOverall\nThe dashboard layout is further divided into 3 (or 4) sections; Temperature, Rainfall, Wind (and relative humidity, which may be a composite factor of temperature and rain).\nWe intend for users to be able to filter by multiple levels as indicated below:\n\nBy time period – slider bar\nBy min/max/mean – checkbox (only choose 1)\nBy day/month/year - checkbox (only choose 1)\n\nIf time permit, we will add animations to the map which shows the gradual change in temp/rain/wind over time across the different regions.\n\n\n\n\n\n\n\nTrend\nTo give users a clearer view of changes over time, the Trend tab utilizes a parallel coordinate map that shows temp/rain/wind against time. Here, each line (and color) represents a different weather station. We can also added the vertical histograms that shows the distribution as well as the outliers.\n\n\n\n\n\n\n\nClimate Impact\nIn this section, the users will be able to visualize the correlation between temp/rain and dengue cases. Those who are in the public health sector can make use of this information to develop better strategies to prevent dengue outbreak."
   },
   {
     "objectID": "Proposal/Proposal.html#forecast-1",
@@ -54,5 +54,26 @@
     "title": "Project Proposal",
     "section": "Forecast",
     "text": "Forecast\nIn the forecast tab, users will be able to run models to predict temp/rain/wind changes.\nHere, we plan to use ARIMA forecasting methods. The user will be able to choose from a selection of parameters before running the model.\n\n\n\n\n\nFinally, we will include a tab for CDA to validate our results."
+  },
+  {
+    "objectID": "Proposal/Proposal.html#exploratory-data-analysis-eda",
+    "href": "Proposal/Proposal.html#exploratory-data-analysis-eda",
+    "title": "Project Proposal",
+    "section": "Exploratory Data Analysis (EDA)",
+    "text": "Exploratory Data Analysis (EDA)\nAs a standard procedure of a data analytics project, EDA will be performed to understand the trend and patterns in the data before developing our forecast models.\n\nUnderstanding the weather time series data (rainfall, temperature, relative humidity and wind) by decomposing them to study their trend, seasonality and stationarity.\nGeographical analysis to study the differences of weather by region and planning area in Singapore.\nCorrelation analysis to study the association among rainfall, temperature, relative humidity and wind.\nCorrelation analysis to study the association among rainfall, temperature and dengue cases."
+  },
+  {
+    "objectID": "Proposal/Proposal.html#forecast-model-development",
+    "href": "Proposal/Proposal.html#forecast-model-development",
+    "title": "Project Proposal",
+    "section": "Forecast Model Development",
+    "text": "Forecast Model Development\nDifferent time series forecast models will be attempted to compare their performance, which are:\n\nSimple moving average method which is a part of the simple time series forecast model family. It will act as the reference model to be compared with more advanced models.\nHolt Winter’s method which employs exponential smoothing techniques that applies a higher weightage to the more recent data. The underlying assumption here is that the weather in the recent years would be more valuable in forecasting the future weather.\nSeasonal auto regressive integrated moving average (SARIMA) which extends auto regressive integrated moving average (ARIMA) methods by adding the seasonality component. The underlying assumption here is that weather exhibits seasonality trend. Thus, SARIMA method would be more suitable for weather forecasting."
+  },
+  {
+    "objectID": "Proposal/Proposal.html#confirmatory-data-analysis-cda",
+    "href": "Proposal/Proposal.html#confirmatory-data-analysis-cda",
+    "title": "Project Proposal",
+    "section": "Confirmatory Data Analysis (CDA)",
+    "text": "Confirmatory Data Analysis (CDA)\nTo evaluate the models’ performance and identify the champion model after developing the above-mentioned models, we’ll use the following two commonly used performance metrics:\n\nRoot mean squared error (RMSE) which is the square root of mean squared error (MSE). It measures how far the forecasted values are deviated from the actual measurements.\n\nMean absolute percentage error (MAPE) which measures the percentage error against the actual measurements. It’s largely adopted because it’s normalized in percentage form, which many people find it easier to interpret and compare among different methods."
   }
 ]

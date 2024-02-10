@@ -138,7 +138,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Modified</div>
     <div class="quarto-title-meta-contents">
-      <p class="date-modified">February 9, 2024</p>
+      <p class="date-modified">February 10, 2024</p>
     </div>
   </div>
     
@@ -185,17 +185,34 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="methodology" class="level1">
 <h1>Methodology</h1>
-<section id="eda" class="level2">
-<h2 data-anchor-id="eda">EDA</h2>
-<p>We will be using data visualizations to explore trends in our weather and temperature for the past few decades</p>
+<section id="exploratory-data-analysis-eda" class="level2">
+<h2 data-anchor-id="exploratory-data-analysis-eda">Exploratory Data Analysis (EDA)</h2>
+<p>As a standard procedure of a data analytics project, EDA will be performed to understand the trend and patterns in the data before developing our forecast models.</p>
+<ul>
+<li><p>Understanding the weather time series data (rainfall, temperature, relative humidity and wind) by decomposing them to study their trend, seasonality and stationarity.</p></li>
+<li><p>Geographical analysis to study the differences of weather by region and planning area in Singapore.</p></li>
+<li><p>Correlation analysis to study the association among rainfall, temperature, relative humidity and wind.</p></li>
+<li><p>Correlation analysis to study the association among rainfall, temperature and dengue cases.</p></li>
+</ul>
 </section>
-<section id="forecast" class="level2">
-<h2 data-anchor-id="forecast">Forecast</h2>
-<p>We will be using time-series analysis to forecast weather changes in the near future by regions.</p>
+<section id="forecast-model-development" class="level2">
+<h2 data-anchor-id="forecast-model-development">Forecast Model Development</h2>
+<p>Different time series forecast models will be attempted to compare their performance, which are:</p>
+<ul>
+<li><p><strong>Simple moving average method</strong> which is a part of the simple time series forecast model family. It will act as the reference model to be compared with more advanced models.</p></li>
+<li><p><strong>Holt Winter’s method</strong> which employs exponential smoothing techniques that applies a higher weightage to the more recent data. The underlying assumption here is that the weather in the recent years would be more valuable in forecasting the future weather.</p></li>
+<li><p><strong>Seasonal auto regressive integrated moving average (SARIMA)</strong> which extends auto regressive integrated moving average (ARIMA) methods by adding the seasonality component. The underlying assumption here is that weather exhibits seasonality trend. Thus, SARIMA method would be more suitable for weather forecasting.</p></li>
+</ul>
 </section>
-<section id="cda" class="level2">
-<h2 data-anchor-id="cda">CDA</h2>
-<p>We will be using CDA to evalute our predictions via significance, sensitivity analysis, and confidence.</p>
+<section id="confirmatory-data-analysis-cda" class="level2">
+<h2 data-anchor-id="confirmatory-data-analysis-cda">Confirmatory Data Analysis (CDA)</h2>
+<p>To evaluate the models’ performance and identify the champion model after developing the above-mentioned models, we’ll use the following two commonly used performance metrics:</p>
+<ul>
+<li><p><strong>Root mean squared error (RMSE)</strong> which is the square root of mean squared error (MSE). It measures how far the forecasted values are deviated from the actual measurements.</p>
+<p><img src="Formula - RMSE.png" class="img-fluid"></p></li>
+<li><p><strong>Mean absolute percentage error (MAPE)</strong> which measures the percentage error against the actual measurements. It’s largely adopted because it’s normalized in percentage form, which many people find it easier to interpret and compare among different methods.</p>
+<p><img src="Formula - MAPE.png" class="img-fluid"></p></li>
+</ul>
 </section>
 </section>
 <section id="shinyapp-layout" class="level1">
@@ -209,7 +226,7 @@ ul.task-list li input[type="checkbox"] {
 <h2 data-anchor-id="dashboard">Dashboard</h2>
 <section id="overall" class="level3">
 <h3 data-anchor-id="overall">Overall</h3>
-<p>The dashboard layout is further divided into 3 (or 4) sections; Temperature, Rainfall, Wind (and humidity, which may be a composite factor of temperature and rain).</p>
+<p>The dashboard layout is further divided into 3 (or 4) sections; Temperature, Rainfall, Wind (and relative humidity, which may be a composite factor of temperature and rain).</p>
 <p>We intend for users to be able to filter by multiple levels as indicated below:</p>
 <ul>
 <li><p>By time period – slider bar</p></li>
@@ -225,24 +242,29 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="trend" class="level3">
 <h3 data-anchor-id="trend">Trend</h3>
-<p>To give users a clearer view of changes over time, the Trend tab utilizes a parallel coordinate map that shows temp/rain/wind against time. Here, each line (and color) represents a different weather station. We can also added the vertical histograms that shows the distribution as well as outlier points.</p>
+<p>To give users a clearer view of changes over time, the Trend tab utilizes a parallel coordinate map that shows temp/rain/wind against time. Here, each line (and color) represents a different weather station. We can also added the vertical histograms that shows the distribution as well as the outliers.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="Dashboard Trend.jpg" class="img-fluid figure-img"></p>
 </figure>
 </div>
 </section>
+<section id="climate-impact" class="level3">
+<h3 data-anchor-id="climate-impact">Climate Impact</h3>
+<p>In this section, the users will be able to visualize the correlation between temp/rain and dengue cases. Those who are in the public health sector can make use of this information to develop better strategies to prevent dengue outbreak.</p>
+<p><img src="Dashboard Climate Impact.jpg" class="img-fluid"></p>
 </section>
-<section id="forecast-1" class="level2">
-<h2 data-anchor-id="forecast-1">Forecast</h2>
+</section>
+<section id="forecast" class="level2">
+<h2 data-anchor-id="forecast">Forecast</h2>
 <p>In the forecast tab, users will be able to run models to predict temp/rain/wind changes.</p>
-<p>Here, we plan to use ARIMA forecasting methods. The user will be able to choose from a selection of parameters before running the model.</p>
+<p>Here, the users will be able to choose from a selection of the models mentioned in the previous section, and define the parameters associated with that model before running the model.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="Forecast.jpg" class="img-fluid figure-img"></p>
 </figure>
 </div>
-<p>Finally, we will include a tab for CDA to validate our results.</p>
+<p>Finally, we will include a tab for CDA to evaluate the performance of the trained model.</p>
 </section>
 </section>
 <section id="project-management-and-timeline" class="level1">
