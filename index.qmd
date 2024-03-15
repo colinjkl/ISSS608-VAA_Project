@@ -50,30 +50,21 @@ some intro stuff some intro stuff some intro stuff some intro stuff some intro s
 
 ::: grid_block
 ::: {.col-xs-6 .col-md-4}
-<h2>##</h2>
+<h2>\##</h2>
 
-Some weather highlights
-Some weather highlights
-Some weather highlights
-Some weather highlights
+Some weather highlights Some weather highlights Some weather highlights Some weather highlights
 :::
 
 ::: {.col-xs-6 .col-md-4}
-<h2>##</h2>
+<h2>\##</h2>
 
-Some weather highlights
-Some weather highlights
-Some weather highlights
-Some weather highlights
+Some weather highlights Some weather highlights Some weather highlights Some weather highlights
 :::
 
 ::: {.col-xs-6 .col-md-4}
-<h2>##</h2>
+<h2>\##</h2>
 
-Some weather highlights
-Some weather highlights
-Some weather highlights
-Some weather highlights
+Some weather highlights Some weather highlights Some weather highlights Some weather highlights
 :::
 :::
 
