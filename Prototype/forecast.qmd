@@ -46,6 +46,15 @@ arima_ts <-  df %>% dplyr::select(Date, Cases)
 arima_tbl <- arima_ts %>% as_tsibble(index = Date) %>% fill_gaps(.full = TRUE) %>% fill(Cases)
 ```
 
+```{r}
+arima_sliced <- arima_tbl %>% dplyr::filter(Date > "2020-01-01" &
+                                              Date < "2020-10-01" )
+```
+
+```{r}
+round(0.5*nrow(arima_sliced))
+```
+
 ### Model
 
 ```{r}

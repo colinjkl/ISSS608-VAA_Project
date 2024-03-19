@@ -29,6 +29,8 @@ p <- reactiveVal()
 d <- reactiveVal()
 q <- reactiveVal()
 n <- reactiveVal()
+sd <- reactiveVal()
+ed <- reactiveVal()
 
 # Define server logic required to draw a histogram
 function(input, output, session) {
@@ -56,6 +58,8 @@ function(input, output, session) {
     d(input$dInput)
     q(input$qInput)
     n(input$nInput)
+    sd(input$periodRange[1])
+    ed(input$periodRange[2])
     output$forecast_plot <- renderUI({
       plotOutput('forecast')
     })
@@ -66,6 +70,8 @@ function(input, output, session) {
     d(input$dInput)
     q(input$qInput)
     n(input$nInput)
+    sd(input$periodRange[1])
+    ed(input$periodRange[2])
     output$results_table <- renderUI({
       dataTableOutput('results')
     })
@@ -73,8 +79,12 @@ function(input, output, session) {
   
   output$tuned_rdl <- renderPlot({
     
+    # slice dates
+    arima_slice <- arima_tbl %>% dplyr::filter(Date >= input$periodRange[1] &
+                                                 Date <= input$periodRange[2])
+    
     # tuned arima model
-    arima_mdl <- arima_tbl %>% 
+    arima_mdl <- arima_slice %>% 
       model(ARIMA(Cases ~ pdq(input$pInput,
                               input$dInput,
                               input$qInput)))
@@ -86,8 +96,12 @@ function(input, output, session) {
   
   output$tuned_avp <- renderPlot({
     
+    # slice dates
+    arima_slice <- arima_tbl %>% dplyr::filter(Date >= input$periodRange[1] &
+                                                 Date <= input$periodRange[2])
+    
     # tuned arima model
-    arima_mdl <- arima_tbl %>% 
+    arima_mdl <- arima_slice %>% 
       model(ARIMA(Cases ~ pdq(input$pInput,
                               input$dInput,
                               input$qInput)))
@@ -99,8 +113,8 @@ function(input, output, session) {
     
     # define types
     arima_fitted$Type <- "Fit"
-    arima_tbl$Type <- "Observed"
-    arima_avp <- dplyr::bind_rows(arima_fitted, arima_tbl)
+    arima_slice$Type <- "Observed"
+    arima_avp <- dplyr::bind_rows(arima_fitted, arima_slice)
     
     # plot
     ggplot(data = arima_avp) +
@@ -112,16 +126,20 @@ function(input, output, session) {
   
   output$tuned_met <- renderTable({
     
+    # slice dates
+    arima_slice <- arima_tbl %>% dplyr::filter(Date >= input$periodRange[1] &
+                                                 Date <= input$periodRange[2])
+    
     # generate cross validation metrics
-    arima_cv <- arima_tbl %>%
-      stretch_tsibble(.init = 200, .step = 10) 
+    arima_cv <- arima_slice %>%
+      stretch_tsibble(.init = round(0.5*nrow(arima_slice)), .step = 10) 
     
     arima_cv_metrics <- arima_cv %>%
       model(ARIMA(Cases ~ pdq(input$pInput,
                               input$dInput,
                               input$qInput))) %>%
       forecast(h = 1) %>%
-      accuracy(arima_tbl)
+      accuracy(arima_slice)
     
     # generate table
     arima_cv_metrics[c("RMSE","MAE","MAPE")]
@@ -137,8 +155,12 @@ function(input, output, session) {
   
   output$forecast <- renderPlot({
     
+    # slice dates
+    arima_slice <- arima_tbl %>% dplyr::filter(Date >= sd() &
+                                                 Date <= ed())
+    
     # tuned arima model
-    arima_mdl <- arima_tbl %>% 
+    arima_mdl <- arima_slice %>% 
       model(ARIMA(Cases ~ pdq(p(),
                               d(),
                               q())))
@@ -146,14 +168,18 @@ function(input, output, session) {
     # generate forecast plot
     arima_mdl %>%
       forecast(h = n()) %>%
-      autoplot(arima_tbl)
+      autoplot(arima_slice)
     
   })
   
   output$results <- renderDataTable({
     
+    # slice dates
+    arima_slice <- arima_tbl %>% dplyr::filter(Date >= sd() &
+                                                 Date <= ed())
+    
     # tuned arima model
-    arima_mdl <- arima_tbl %>% 
+    arima_mdl <- arima_slice %>% 
       model(ARIMA(Cases ~ pdq(p(),
                               d(),
                               q())))

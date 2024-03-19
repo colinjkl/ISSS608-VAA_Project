@@ -67,7 +67,7 @@ fluidPage(
                      min = as.Date(start_date), max = as.Date(end_date), 
                      value = c(as.Date(start_date), as.Date(end_date)),
                      timeFormat = "%Y-%m-%d",
-                     width = "100%"
+                     width = "90%"
                    ),
                    div(actionButton("initButton", "Begin"), style = "float:right")
                  )
