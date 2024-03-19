@@ -1,0 +1,13 @@
+name: ProjectShinyApp
+title: ProjectShinyApp
+username: prototype-isss608vaa
+account: prototype-isss608vaa
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 11531514
+bundleId: 8390721
+url: https://prototype-isss608vaa.shinyapps.io/ProjectShinyApp/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: data/time_series_data.csv

@@ -10,6 +10,8 @@ listing:
   type: grid
   
 section-titles: false
+
+freeze: true
 ---
 
 #  {#top}

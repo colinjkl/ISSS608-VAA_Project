@@ -4,7 +4,7 @@
     "href": "Shinyapp/Shinyapp.html",
     "title": "Shinyapp",
     "section": "",
-    "text": "Sorry! Still Work in Progress\n\n\n\n\n\n Back to top"
+    "text": "Sorry! Still Work in Progress\n\n\nTest Server: https://prototype-isss608vaa.shinyapps.io/ProjectShinyApp/\n\n\n\n Back to top"
   },
   {
     "objectID": "Poster/Poster.html",
@@ -75,5 +75,33 @@
     "title": "Project Proposal",
     "section": "Confirmatory Data Analysis (CDA)",
     "text": "Confirmatory Data Analysis (CDA)\nTo evaluate the models’ performance and identify the champion model after developing the above-mentioned models, we’ll use the following two commonly used performance metrics:\n\nRoot mean squared error (RMSE) which is the square root of mean squared error (MSE). It measures how far the forecasted values are deviated from the actual measurements.\n\nMean absolute percentage error (MAPE) which measures the percentage error against the actual measurements. It’s largely adopted because it’s normalized in percentage form, which many people find it easier to interpret and compare among different methods."
+  },
+  {
+    "objectID": "Prototype/forecast.html",
+    "href": "Prototype/forecast.html",
+    "title": "Dengue Forecast in Singapore",
+    "section": "",
+    "text": "pacman::p_load(\n  tidyverse,\n  fable,\n  tsibble,\n  feasts,\n  patchwork,\n  plotly\n)"
+  },
+  {
+    "objectID": "Prototype/forecast.html#arima",
+    "href": "Prototype/forecast.html#arima",
+    "title": "Dengue Forecast in Singapore",
+    "section": "ARIMA",
+    "text": "ARIMA\n\nData Preparation\n\narima_ts &lt;-  df %&gt;% dplyr::select(Date, Cases)\narima_tbl &lt;- arima_ts %&gt;% as_tsibble(index = Date) %&gt;% fill_gaps(.full = TRUE) %&gt;% fill(Cases)\n\n\n\nModel\n\narima_mdl &lt;- arima_tbl %&gt;% \n  model(ARIMA(Cases))\n\n\narima_mdl %&gt;% gg_tsresiduals()\n\n\n\n\n\n\nAutocorrelation\n\narima_tbl %&gt;% gg_tsdisplay(difference(Cases,1), plot_type = 'partial')\n\n\n\n\n\n\nActual vs Predicted\n\narima_fitted &lt;- fitted(arima_mdl)[,2:3] %&gt;% \n  as_tibble() %&gt;% \n  rename(Cases=.fitted)\n\narima_fitted$Type &lt;- \"Fit\"\n\narima_tbl$Type &lt;- \"Observed\"\n\narima_avp &lt;- dplyr::bind_rows(arima_fitted, arima_tbl)\n\nggplotly(\n  ggplot(data = arima_avp) +\n    geom_line(aes(x = Date, y = Cases, colour = Type)) +\n    ggtitle(\"Observed vs Fitted\")\n)\n\n\n\n\n\n\n\nModel Metrics\n\narima_cv &lt;- arima_tbl %&gt;%\n  stretch_tsibble(.init = 200, .step = 10) \n\n\narima_cv_metrics &lt;- arima_cv %&gt;%\n  model(ARIMA(Cases)) %&gt;%\n  forecast(h = 1) %&gt;%\n  accuracy(arima_tbl)\n\n\narima_train_metrics &lt;- arima_mdl %&gt;%\n  accuracy()\n\n\narima_cv_metrics[c(\"RMSE\",\"MAE\",\"MAPE\")]\n\n# A tibble: 1 × 3\n   RMSE   MAE  MAPE\n  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;\n1  55.1  36.7  16.9\n\n\n\n\nForecast\n\narima_mdl %&gt;%\n  forecast(h = 26) %&gt;%\n  autoplot(arima_tbl)\n\n\n\n\n\nresults &lt;- arima_mdl %&gt;%\n  forecast(h = 26)\n\nresults &lt;- results[-c(1,3)]\ncolnames(results) &lt;- c(\"Date\", \"Forecast\")\n\nresults\n\n# A tsibble: 26 x 2 [7D]\n   Date       Forecast\n   &lt;date&gt;        &lt;dbl&gt;\n 1 2020-11-30     259.\n 2 2020-12-07     246.\n 3 2020-12-14     253.\n 4 2020-12-21     270.\n 5 2020-12-28     296.\n 6 2021-01-04     330.\n 7 2021-01-11     368.\n 8 2021-01-18     409.\n 9 2021-01-25     451.\n10 2021-02-01     492.\n# ℹ 16 more rows"
+  },
+  {
+    "objectID": "Prototype/forecast.html#exponential-smoothing",
+    "href": "Prototype/forecast.html#exponential-smoothing",
+    "title": "Dengue Forecast in Singapore",
+    "section": "Exponential Smoothing",
+    "text": "Exponential Smoothing\n\nData Preparation\n\nets_ts &lt;-  df %&gt;% dplyr::select(Date, Cases)\nets_tbl &lt;- ets_ts %&gt;% as_tsibble(index = Date) %&gt;% fill_gaps(.full = TRUE) %&gt;% fill(Cases)\n\n\n\nModel\n\nets_mdl &lt;- ets_tbl %&gt;%\n  model(ETS(Cases))\n\nreport(ets_mdl)\n\nSeries: Cases \nModel: ETS(M,A,N) \n  Smoothing parameters:\n    alpha = 0.8295143 \n    beta  = 0.0001000111 \n\n  Initial states:\n     l[0]     b[0]\n 766.3457 2.816859\n\n  sigma^2:  0.0363\n\n     AIC     AICc      BIC \n5212.341 5212.496 5232.210 \n\n\n\n\nDecomposition\n\ncomponents(ets_mdl) %&gt;%\n  autoplot() +\n  labs(title = \"Exponential Smoothing Components\")\n\n\n\n\n\n\nActual vs Predicted\n\nets_fitted &lt;- fitted(ets_mdl)[,2:3] %&gt;% \n  as_tibble() %&gt;% \n  rename(Cases=.fitted)\n\nets_fitted$Type &lt;- \"Fit\"\n\nets_tbl$Type &lt;- \"Observed\"\n\nets_avp &lt;- dplyr::bind_rows(ets_fitted, ets_tbl)\n\nggplotly(\n  ggplot(data = ets_avp) +\n    geom_line(aes(x = Date, y = Cases, colour = Type)) +\n    ggtitle(\"Observed vs Fitted\")\n)\n\n\n\n\n\n\n\nModel Metrics\n\nets_cv &lt;- ets_tbl %&gt;%\n  stretch_tsibble(.init = 200, .step = 10) \n\n\nets_cv_metrics &lt;- ets_cv %&gt;%\n  model(ARIMA(Cases)) %&gt;%\n  forecast(h = 1) %&gt;%\n  accuracy(ets_tbl)\n\n\nets_train_metrics &lt;- ets_mdl %&gt;%\n  accuracy()\n\n\nets_cv_metrics$MAPE\n\n[1] 16.91571"
+  },
+  {
+    "objectID": "Prototype/forecast.html#var",
+    "href": "Prototype/forecast.html#var",
+    "title": "Dengue Forecast in Singapore",
+    "section": "VAR",
+    "text": "VAR\n\nData Preparation\n\nvar_ts &lt;-  df %&gt;% dplyr::select(-c(\"Year\", \"WkNo\"))\nvar_tbl &lt;- var_ts %&gt;% as_tsibble(index = Date) %&gt;% fill_gaps(.full = TRUE) %&gt;% fill(colnames(var_ts))\n\n\n\nModel\n\nvar_mdl &lt;- var_tbl %&gt;%\n  model(\n    aicc = VAR(vars(Cases, avg_mean_temp, avg_daily_rainfall)),\n    bic = VAR(vars(Cases, avg_mean_temp, avg_daily_rainfall), ic=\"bic\")\n  )\n\n\ni &lt;- c(\"avg_mean_temp\", \"avg_daily_rainfall\")\n\n\nv &lt;- \"Cases\"\nmode &lt;- '\"aicc\"'\n\nfor (s in i) {\n  v &lt;- paste0(v,\",\",s)\n}\n\nstrr &lt;- paste0('var_tbl %&gt;% model(',mode,' = VAR(vars(',v,'), ic=',mode,'))')\n\nvar_mdl &lt;- eval(parse(text = strr))\n\n\n\nAutocorrelation\n\nvar_mdl |&gt;\n  augment() |&gt;\n  ACF() |&gt;\n  autoplot()\n\n\n\n\n\n\nActual vs Predicted\n\n\nModel Metrics"
   }
 ]

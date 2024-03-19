@@ -10,115 +10,218 @@
 library(shiny)
 
 pacman::p_load(
-  "tidyverse"
+  shiny,
+  shinyjs,
+  tidyverse,
+  fable,
+  tsibble,
+  feasts,
+  patchwork,
+  plotly
 )
 
-df <- read_csv("data/time_series_data.csv")
-station_names <- unique(df$Station)
-target_vars <- grep("_", colnames(df), value = T)
+df <- read_csv("data/dengue_climate_joined_by_week_transformed.csv")
+
+df$Date <- lubridate::ymd(lubridate::parse_date_time(paste(df$Year, df$WkNo, 1, sep="/"),'Y/W/w'))
+
+arima_ts <-  df %>% dplyr::select(Date, Cases)
+arima_tbl <- arima_ts %>% as_tsibble(index = Date) %>% fill_gaps(.full = TRUE) %>% fill(Cases)
+
+start_date <- arima_tbl$Date[length(arima_tbl)]
+end_date <- arima_tbl$Date[nrow(arima_tbl)]
+
 
 # Define UI for application that draws a histogram
 fluidPage(
-
-    # Application title
-    titlePanel("Old Faithful Geyser Data"),
-    
-    # Navigation panel on left
-    navlistPanel(
-      id = "tabset",
-      widths = c(2,10),
-      "EDA",
-      tabPanel("Distribution"),
-      tabPanel("Country by Country Comparison"),
-      "Explanatory Model",
-      tabPanel("Linear Regression"),
-      "Time Series Forecast",
-      tabPanel("Holt Winters",
+  
+  # load shinyjs
+  useShinyjs(),
+  
+  # Application title
+  titlePanel("Climate and Dengue"),
+  
+  # Navigation panel on left
+  navlistPanel(
+    id = "tabset",
+    widths = c(2,10),
+    "EDA",
+    tabPanel("Distribution"),
+    tabPanel("Country by Country Comparison"),
+    "Variable Selection",
+    tabPanel("Correlation"),
+    tabPanel("Feature Importance"),
+    "Univariate Time Series",
+    tabPanel("ARIMA",
+             
+             # Left column
+             column(
+               3,
                
-               # Left column
-               column(
-                 2,
-                 
-                 # Model Initialization
+               # Model Initialization
+               strong("Initialization"),
+               wellPanel(
                  fluidRow(
-                   selectInput("station",
-                               "Choose Station:",
-                               choices = station_names,
-                               multiple = F),
-                   selectInput("target_var",
-                               "Choose Weather Variable:",
-                               choices = target_vars,
-                               multiple = F),
-                   div(actionButton("initButton", "Initialize"), style = "float:right")
-                 ),
-                 
-                 # Model Tuning
-                 fluidRow(
-                   sliderInput("periodRange", 
-                               "Select Period:", 
-                               min = as.Date("2016-02-01"), max = as.Date("2020-02-01"), 
-                               value = c(as.Date("2016-02-01"), as.Date("2020-02-01")),
-                               timeFormat = "%Y-%m"
+                   sliderInput(
+                     "periodRange", 
+                     "Select Period:", 
+                     min = as.Date(start_date), max = as.Date(end_date), 
+                     value = c(as.Date(start_date), as.Date(end_date)),
+                     timeFormat = "%Y-%m-%d",
+                     width = "100%"
                    ),
-                   
-                   tags$head(tags$style(HTML("div#inline label { width: 32%; }
-                               div#inline input { display: inline-block; width: 68%;}"))),
-                   tags$head(
-                     tags$style(type="text/css", "#inline label{ display: table-cell; text-align: left; vertical-align: middle; }
-                                   #inline .form-group { display: table-row;}")),
-                   
-                   tags$div(
-                     id = "inline",
-                     style = "width:130%;",
-                     #class = "inline",
-                     numericInput("trainTestSplitInput",
-                                "Alpha :",
-                                value = 0.8,
-                                min = 0.5,
-                                max = 1.0,
-                                step = 0.05)),
-                   numericInput("alphaInput",
-                                "Alpha: (between 0.0 - 1.0)",
-                                value = 0.8,
-                                min = 0.0,
-                                max = 1.0,
-                                step = 0.05),
-                   numericInput("betaInput",
-                                "Beta: (between 0.0 - 1.0)",
-                                value = 0.8,
-                                min = 0.0,
-                                max = 1.0,
-                                step = 0.05),
-                   numericInput("gammaInput",
-                                "Gamma: (between 0.0 - 1.0)",
-                                value = 0.8,
-                                min = 0.0,
-                                max = 1.0,
-                                step = 0.05)
-                   
-                   
+                   div(actionButton("initButton", "Begin"), style = "float:right")
+                 )
+               ),
+               
+               # Model Tuning
+               conditionalPanel(
+                 condition = ("input.initButton > 0"),
+                 strong("Parameter Tuning"),
+                 wellPanel(
+                   fluidRow(
+                     tags$table(
+                       width = "100%",
+                       tags$tr(
+                         tags$td(
+                           width = "50%",
+                           strong("p"),
+                           tags$br(),
+                           tags$p("Autoregression", style = "font-size:10px"),
+                           align = "left"
+                         ),
+                         tags$td(
+                           numericInput(inputId = "pInput",
+                                        label = NULL,
+                                        value = 0,
+                                        min = 0,
+                                        max = 9,
+                                        step = 1),
+                           width = "50%"
+                         )
+                       ),
+                       tags$tr(
+                         tags$td(
+                           width = "50%",
+                           strong("d"),
+                           tags$br(),
+                           tags$p("Differencing", style = "font-size:10px"),
+                           align = "left"
+                         ),
+                         tags$td(
+                           numericInput(inputId = "dInput",
+                                        label = NULL,
+                                        value = 0,
+                                        min = 0,
+                                        max = 9,
+                                        step = 1),
+                           width = "50%"
+                         )
+                       ),
+                       tags$tr(
+                         tags$td(
+                           width = "50%",
+                           strong("q"),
+                           tags$br(),
+                           tags$p("Moving Average", style = "font-size:10px"),
+                           align = "left"
+                         ),
+                         tags$td(
+                           numericInput(inputId = "qInput",
+                                        label = NULL,
+                                        value = 0,
+                                        min = 0,
+                                        max = 9,
+                                        step = 1),
+                           width = "50%"
+                         )
+                       )
+                     )
+                   )
+                 )
+               ),
+               
+               # Model Forecast
+               conditionalPanel(
+                 condition = ("input.initButton > 0"),
+                 strong("Forecast"),
+                 wellPanel(
+                   fluidRow(
+                     tags$table(
+                       width = "100%",
+                       tags$tr(
+                         tags$td(
+                           width = "50%",
+                           strong("n ahead"),
+                           tags$br(),
+                           tags$p("Periods to forecast", style = "font-size:10px"),
+                           align = "left"
+                         ),
+                         tags$td(
+                           numericInput(inputId = "nInput",
+                                        label = NULL,
+                                        value = 13,
+                                        min = 1,
+                                        max = 208,
+                                        step = 1),
+                           width = "50%"
+                         )
+                       )
+                     ),
+                     div(actionButton("forecastButton", "Go"), style = "float:right")
+                   )
+                 )
+               )
+             ),
+             
+             # Diagnostics Panel
+             column(
+               4,
+               conditionalPanel(
+                 condition = ("input.initButton > 0"),
+                 tabsetPanel(
+                   tabPanel(
+                     "Actual vs Fit",
+                     fluidRow(
+                       uiOutput("avp_plot")
+                     )
+                   ),
+                   tabPanel(
+                     "Residuals",
+                     fluidRow(
+                       uiOutput("residual_plot")
+                     )
+                   )
                  ),
                  fluidRow(
-                   h4("Parameters")
-                   
+                   uiOutput("metric_table")
                  )
-                   
-                 
-               ),
-               
-               # Show a plot of the generated distribution
-               column(
-                 5,
-                 plotOutput("distPlot")
-               ),
-               
-               # Show a plot of the generated distribution
-               column(
-                 5,
-                 "Hello World"
                )
-      )
-    ),
-
-
+             ),
+             
+             # Forecast Panel
+             column(
+               5,
+               conditionalPanel(
+                 condition = ("input.forecastButton > 0"),
+                 tabsetPanel(
+                   tabPanel(
+                     "Forecast",
+                     fluidRow(
+                       uiOutput("forecast_plot")
+                     )
+                   ),
+                   tabPanel(
+                     "Data table",
+                     fluidRow(
+                       style = "padding:5%;",
+                       uiOutput("results_table")
+                     )
+                   )
+                 )
+               )
+             )
+    )
+  ),
+  
+  
 )

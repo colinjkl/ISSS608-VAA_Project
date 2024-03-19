@@ -3,3 +3,5 @@ title: "Shinyapp"
 ---
 
 ![Sorry! Still Work in Progress](/images/bugcat%20wip.gif){fig-align="center"}
+
+Test Server: <https://prototype-isss608vaa.shinyapps.io/ProjectShinyApp/>

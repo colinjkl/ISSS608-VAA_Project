@@ -1,0 +1,248 @@
+---
+title: "Dengue Forecast in Singapore"
+author: "Colin Jiang Kelin"
+date: " 17, 2024"
+date-modified: "last-modified"
+execute: 
+  eval: true
+  echo: true
+  freeze: true
+  message: false
+  warning: false
+editor: visual
+---
+
+```{r}
+pacman::p_load(
+  tidyverse,
+  fable,
+  tsibble,
+  feasts,
+  patchwork,
+  plotly
+)
+```
+
+# Data Import
+
+```{r}
+df <- read_csv("data/dengue_climate_joined_by_week_transformed.csv")
+```
+
+# Data Wrangling
+
+```{r}
+df$Date <- lubridate::ymd(lubridate::parse_date_time(paste(df$Year, df$WkNo, 1, sep="/"),'Y/W/w'))
+```
+
+# Univariate
+
+## ARIMA
+
+### Data Preparation
+
+```{r}
+arima_ts <-  df %>% dplyr::select(Date, Cases)
+arima_tbl <- arima_ts %>% as_tsibble(index = Date) %>% fill_gaps(.full = TRUE) %>% fill(Cases)
+```
+
+### Model
+
+```{r}
+arima_mdl <- arima_tbl %>% 
+  model(ARIMA(Cases))
+```
+
+```{r}
+arima_mdl %>% gg_tsresiduals()
+```
+
+### Autocorrelation
+
+```{r}
+arima_tbl %>% gg_tsdisplay(difference(Cases,1), plot_type = 'partial')
+```
+
+### Actual vs Predicted
+
+```{r}
+arima_fitted <- fitted(arima_mdl)[,2:3] %>% 
+  as_tibble() %>% 
+  rename(Cases=.fitted)
+
+arima_fitted$Type <- "Fit"
+
+arima_tbl$Type <- "Observed"
+
+arima_avp <- dplyr::bind_rows(arima_fitted, arima_tbl)
+
+ggplotly(
+  ggplot(data = arima_avp) +
+    geom_line(aes(x = Date, y = Cases, colour = Type)) +
+    ggtitle("Observed vs Fitted")
+)
+```
+
+### Model Metrics
+
+```{r}
+
+arima_cv <- arima_tbl %>%
+  stretch_tsibble(.init = 200, .step = 10) 
+
+
+arima_cv_metrics <- arima_cv %>%
+  model(ARIMA(Cases)) %>%
+  forecast(h = 1) %>%
+  accuracy(arima_tbl)
+
+
+arima_train_metrics <- arima_mdl %>%
+  accuracy()
+```
+
+```{r}
+arima_cv_metrics[c("RMSE","MAE","MAPE")]
+```
+
+### Forecast
+
+```{r}
+arima_mdl %>%
+  forecast(h = 26) %>%
+  autoplot(arima_tbl)
+```
+
+```{r}
+results <- arima_mdl %>%
+  forecast(h = 26)
+
+results <- results[-c(1,3)]
+colnames(results) <- c("Date", "Forecast")
+
+results
+```
+
+## Exponential Smoothing
+
+### Data Preparation
+
+```{r}
+ets_ts <-  df %>% dplyr::select(Date, Cases)
+ets_tbl <- ets_ts %>% as_tsibble(index = Date) %>% fill_gaps(.full = TRUE) %>% fill(Cases)
+```
+
+### Model
+
+```{r}
+ets_mdl <- ets_tbl %>%
+  model(ETS(Cases))
+
+report(ets_mdl)
+```
+
+### Decomposition
+
+```{r}
+components(ets_mdl) %>%
+  autoplot() +
+  labs(title = "Exponential Smoothing Components")
+```
+
+### Actual vs Predicted
+
+```{r}
+ets_fitted <- fitted(ets_mdl)[,2:3] %>% 
+  as_tibble() %>% 
+  rename(Cases=.fitted)
+
+ets_fitted$Type <- "Fit"
+
+ets_tbl$Type <- "Observed"
+
+ets_avp <- dplyr::bind_rows(ets_fitted, ets_tbl)
+
+ggplotly(
+  ggplot(data = ets_avp) +
+    geom_line(aes(x = Date, y = Cases, colour = Type)) +
+    ggtitle("Observed vs Fitted")
+)
+```
+
+### Model Metrics
+
+```{r}
+ets_cv <- ets_tbl %>%
+  stretch_tsibble(.init = 200, .step = 10) 
+
+
+ets_cv_metrics <- ets_cv %>%
+  model(ARIMA(Cases)) %>%
+  forecast(h = 1) %>%
+  accuracy(ets_tbl)
+
+
+ets_train_metrics <- ets_mdl %>%
+  accuracy()
+```
+
+```{r}
+ets_cv_metrics$MAPE
+```
+
+## VAR
+
+### Data Preparation
+
+```{r}
+var_ts <-  df %>% dplyr::select(-c("Year", "WkNo"))
+var_tbl <- var_ts %>% as_tsibble(index = Date) %>% fill_gaps(.full = TRUE) %>% fill(colnames(var_ts))
+```
+
+### Model
+
+```{r}
+var_mdl <- var_tbl %>%
+  model(
+    aicc = VAR(vars(Cases, avg_mean_temp, avg_daily_rainfall)),
+    bic = VAR(vars(Cases, avg_mean_temp, avg_daily_rainfall), ic="bic")
+  )
+```
+
+```{r}
+i <- c("avg_mean_temp", "avg_daily_rainfall")
+```
+
+```{r}
+v <- "Cases"
+mode <- '"aicc"'
+
+for (s in i) {
+  v <- paste0(v,",",s)
+}
+
+strr <- paste0('var_tbl %>% model(',mode,' = VAR(vars(',v,'), ic=',mode,'))')
+
+var_mdl <- eval(parse(text = strr))
+```
+
+### Autocorrelation
+
+```{r}
+var_mdl |>
+  augment() |>
+  ACF() |>
+  autoplot()
+```
+
+### Actual vs Predicted
+
+```{r}
+
+```
+
+### Model Metrics
+
+```{r}
+
+```
