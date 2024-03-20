@@ -150,12 +150,25 @@ ets_mdl <- ets_tbl %>%
 report(ets_mdl)
 ```
 
+```{r}
+a <- capture.output(report(ets_mdl))
+c <- ""
+for (b in a) {
+  c <- paste0(c,b,"\n")
+}
+cat(c)
+```
+
 ### Decomposition
 
 ```{r}
 components(ets_mdl) %>%
   autoplot() +
   labs(title = "Exponential Smoothing Components")
+```
+
+```{r}
+autoplot(ets_tbl)
 ```
 
 ### Actual vs Predicted
@@ -197,6 +210,14 @@ ets_train_metrics <- ets_mdl %>%
 
 ```{r}
 ets_cv_metrics$MAPE
+```
+
+### Forecast
+
+```{r}
+ets_mdl %>%
+  forecast(h = 26) %>%
+  autoplot(ets_tbl)
 ```
 
 ## VAR
