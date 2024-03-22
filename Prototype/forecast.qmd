@@ -35,6 +35,24 @@ df <- read_csv("data/dengue_climate_joined_by_week_transformed.csv")
 df$Date <- lubridate::ymd(lubridate::parse_date_time(paste(df$Year, df$WkNo, 1, sep="/"),'Y/W/w'))
 ```
 
+```{r}
+df2 <- df
+
+for (i in 1:4) {
+  for (n in colnames(df)) {
+    if (n %in% c("Year", "WkNo", "Cases", "Date")) {
+      next
+    } else {
+      df2[paste0("diff",i,"_",n)] <- difference(df[n][[1]],i)
+    }
+  }
+}
+```
+
+```{r}
+write_csv(df2, "data/dengue_climate_joined_by_week_transformed_diff.csv")
+```
+
 # Univariate
 
 ## ARIMA
@@ -151,6 +169,17 @@ report(ets_mdl)
 ```
 
 ```{r}
+ets_mdl <- ets_tbl %>%
+  model(ETS(Cases))
+
+report(ets_mdl)
+
+ets_mdl %>%
+  forecast(h = 26) %>%
+  autoplot(ets_tbl)
+```
+
+```{r}
 a <- capture.output(report(ets_mdl))
 c <- ""
 for (b in a) {
@@ -234,8 +263,7 @@ var_tbl <- var_ts %>% as_tsibble(index = Date) %>% fill_gaps(.full = TRUE) %>% f
 ```{r}
 var_mdl <- var_tbl %>%
   model(
-    aicc = VAR(vars(Cases, avg_mean_temp, avg_daily_rainfall)),
-    bic = VAR(vars(Cases, avg_mean_temp, avg_daily_rainfall), ic="bic")
+    aicc = VAR(vars(Cases, avg_mean_temp, avg_daily_rainfall), ic="aicc")
   )
 ```
 
@@ -268,11 +296,118 @@ var_mdl |>
 ### Actual vs Predicted
 
 ```{r}
+var_fitted <- fitted(var_mdl)[,2:3] %>% 
+  as_tibble() #%>% 
+  #rename(Cases=.fitted)
 
+var_fitted$Type <- "Fit"
+
+var_tbl$Type <- "Observed"
+
+var_avp <- dplyr::bind_rows(var_fitted, var_tbl)
+
+ggplotly(
+  ggplot(data = var_avp) +
+    geom_line(aes(x = Date, y = Cases, colour = Type)) +
+    ggtitle("Observed vs Fitted")
+)
 ```
 
 ### Model Metrics
 
 ```{r}
+var_cv <- var_tbl %>%
+  stretch_tsibble(.init = 200, .step = 10) 
 
+
+var_cv_metrics <- var_cv %>%
+  model(
+    aicc = VAR(vars(Cases, avg_mean_temp, avg_daily_rainfall))
+    ) %>%
+  forecast(h = 1) %>%
+  accuracy(var_tbl)
+```
+
+```{r}
+var_cv_metrics[c(".response","RMSE","MAE","MAPE")]
+```
+
+### Forecast
+
+```{r}
+
+fc <- var_mdl %>% 
+  forecast(h = 26)
+
+fc %>% autoplot(var_tbl)
+```
+
+```{r}
+var_mdl <- var_tbl %>%
+  model(
+    aicc = VAR(vars(Cases), ic="aicc")
+  )
+```
+
+```{r}
+var_mdl %>% forecast(h=26) %>% autoplot(var_tbl)
+```
+
+```{r}
+var_mdl |>
+  augment() |>
+  ACF() |>
+  autoplot()
+```
+
+```{r}
+var_fitted <- fitted(var_mdl)[,2:3] %>% 
+  as_tibble() %>% 
+  rename(Cases=.fitted)
+
+var_fitted$Type <- "Fit"
+
+var_tbl$Type <- "Observed"
+
+var_avp <- dplyr::bind_rows(var_fitted, var_tbl)
+
+ggplotly(
+  ggplot(data = var_avp) +
+    geom_line(aes(x = Date, y = Cases, colour = Type)) +
+    ggtitle("Observed vs Fitted")
+)
+```
+
+```{r}
+var_fitted
+```
+
+```{r}
+var_mdl <- var_tbl %>%
+  model(
+    aicc = VAR(vars(Cases,avg_mean_temp), ic="aicc")
+  )
+
+var_fitted <- fitted(var_mdl)[,2:3] %>% 
+  as_tibble()
+
+var_fitted$Type <- "Fit"
+
+var_tbl$Type <- "Observed"
+
+var_avp <- dplyr::bind_rows(var_fitted, var_tbl)
+
+ggplotly(
+  ggplot(data = var_avp) +
+    geom_line(aes(x = Date, y = Cases, colour = Type)) +
+    ggtitle("Observed vs Fitted")
+)
+```
+
+```{r}
+colnames(var_fitted) <- c("Date", "Cases1", "Type")
+```
+
+```{r}
+print(df)
 ```

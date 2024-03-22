@@ -18,7 +18,7 @@ pacman::p_load(
   plotly
 )
 
-df <- read_csv("data/dengue_climate_joined_by_week_transformed.csv")
+df <- read_csv("data/dengue_climate_joined_by_week_transformed_diff.csv")
 
 df$Date <- lubridate::ymd(lubridate::parse_date_time(paste(df$Year, df$WkNo, 1, sep="/"),'Y/W/w'))
 
@@ -27,6 +27,9 @@ arima_tbl <- arima_ts %>% as_tsibble(index = Date) %>% fill_gaps(.full = TRUE) %
 
 ets_ts <-  df %>% dplyr::select(Date, Cases)
 ets_tbl <- ets_ts %>% as_tsibble(index = Date) %>% fill_gaps(.full = TRUE) %>% fill(Cases)
+
+var_ts <-  df %>% dplyr::select(-c("Year", "WkNo"))
+var_tbl <- var_ts %>% as_tsibble(index = Date) %>% fill_gaps(.full = TRUE) %>% fill(colnames(var_ts))
 
 p <- reactiveVal()
 d <- reactiveVal()
@@ -41,6 +44,7 @@ ets_s <- reactiveVal()
 ets_a <- reactiveVal()
 ets_b <- reactiveVal()
 ets_g <- reactiveVal()
+ets_n <- reactiveVal()
 ets_sd <- reactiveVal()
 ets_ed <- reactiveVal()
 
@@ -140,6 +144,24 @@ function(input, output, session) {
     ets_ed(input$periodRangeEts[2])
     output$ets_results_table <- renderUI({
       dataTableOutput('ets_results')
+    })
+  })
+  
+  observeEvent(input$initVarButton, {
+    output$var_avp_plot <- renderUI({
+      plotOutput('var_avp')
+    })
+  })
+  
+  observeEvent(input$initVarButton, {
+    output$var_acf_plot <- renderUI({
+      plotOutput('var_acf', height = 800)
+    })
+  })
+  
+  observeEvent(input$initVarButton, {
+    output$var_met_table <- renderUI({
+      tableOutput('var_met')
     })
   })
   
@@ -252,7 +274,7 @@ function(input, output, session) {
     
     # generate forecast results
     results <- arima_mdl %>%
-      forecast(h = 26)
+      forecast(h = n())
     
     results <- results[-c(1,3)]
     colnames(results) <- c("Date", "Forecast")
@@ -379,38 +401,38 @@ function(input, output, session) {
   output$ets_forecast <- renderPlot({
     
     # slice dates
-    ets_slice <- ets_tbl %>% dplyr::filter(Date >= input$periodRangeEts[1] &
-                                             Date <= input$periodRangeEts[2])
+    ets_slice <- ets_tbl %>% dplyr::filter(Date >= ets_sd() &
+                                             Date <= ets_ed())
     
     
     # tuned ets model
     ets_mdl <- ets_slice %>%
-      model(ETS(Cases ~ error(input$eInput) + 
-                  trend(input$tInput, alpha = input$trendAlphaEts, beta = input$trendBetaEts) + 
-                  season(input$sInput, gamma = input$seasonGammaEts)))
+      model(ETS(Cases ~ error(ets_e()) + 
+                  trend(ets_t(), alpha = ets_a(), beta = ets_b()) + 
+                  season(ets_s(), gamma = ets_g())))
     
     # generate forecast plot
     ets_mdl %>%
-      forecast(h = input$nEtsInput) %>%
+      forecast(h = ets_n()) %>%
       autoplot(ets_slice)
     
   })
   
-  output$arima_results <- renderDataTable({
+  output$ets_results <- renderDataTable({
     
     # slice dates
-    arima_slice <- arima_tbl %>% dplyr::filter(Date >= sd() &
-                                                 Date <= ed())
+    ets_slice <- ets_tbl %>% dplyr::filter(Date >= ets_sd() &
+                                             Date <= ets_ed())
     
-    # tuned arima model
-    arima_mdl <- arima_slice %>% 
-      model(ARIMA(Cases ~ pdq(p(),
-                              d(),
-                              q())))
+    # tuned ets model
+    ets_mdl <- ets_slice %>%
+      model(ETS(Cases ~ error(ets_e()) + 
+                  trend(ets_t(), alpha = ets_a(), beta = ets_b()) + 
+                  season(ets_s(), gamma = ets_g())))
     
     # generate forecast results
-    results <- arima_mdl %>%
-      forecast(h = 26)
+    results <- ets_mdl %>%
+      forecast(h = ets_n())
     
     results <- results[-c(1,3)]
     colnames(results) <- c("Date", "Forecast")
@@ -421,5 +443,321 @@ function(input, output, session) {
     pageLength = 10
   )
   )
+  
+  output$var_avp <- renderPlot({
+    
+    # slice dates
+    var_slice <- var_tbl %>% dplyr::filter(Date >= input$periodRangeVar[1] &
+                                                 Date <= input$periodRangeVar[2])
+    
+    # Parse inputs
+    v <- "Cases"
+    mode <- '"aicc"'
+    
+    # Mega if else loop to conjure string input for VAR model formula
+    # Sorry cant think of a better way...
+    for (s in input$checkBoxVar) {
+      if (s == "avg_rainfall") {
+        if (input$radioAvgRainfallInput == "None") {s <- s} 
+        else if (input$radioAvgRainfallInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$radioAvgRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$radioAvgRainfallInput == "Z") {s <- paste0("z_",s)}
+        if (input$diffAvgRainfallInput > 0) {s <- paste0("diff",input$diffAvgRainfallInput,"_",s)}
+      }
+      if (s == "tot_rainfall") {
+        if (input$radioTotRainfallInput == "None") {s <- s} 
+        else if (input$radioTotRainfallInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$radioTotRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$radioTotRainfallInput == "Z") {s <- paste0("z_",s)}
+        if (input$diffTotRainfallInput > 0) {s <- paste0("diff",input$diffTotRainfallInput,"_",s)}
+      }
+      if (s == "max_30m_rainfall") {
+        if (input$radioMax30mRainfallInput == "None") {s <- s} 
+        else if (input$radioMax30mRainfallInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$radioMax30mRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$radioMax30mRainfallInput == "Z") {s <- paste0("z_",s)}
+        if (input$diffMax30mRainfallInput > 0) {s <- paste0("diff",input$diffMax30mRainfallInput,"_",s)}
+      }
+      if (s == "max_60m_rainfall") {
+        if (input$radioMax60mRainfallInput == "None") {s <- s} 
+        else if (input$radioMax60mRainfallInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$radioMax60mRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$radioMax60mRainfallInput == "Z") {s <- paste0("z_",s)}
+        if (input$diffMax60mRainfallInput > 0) {s <- paste0("diff",input$diffMax60mRainfallInput,"_",s)}
+      }
+      if (s == "max_120m_rainfall") {
+        if (input$radioMax120mRainfallInput == "None") {s <- s} 
+        else if (input$radioMax120mRainfallInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$radioMax120mRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$radioMax120mRainfallInput == "Z") {s <- paste0("z_",s)}
+        if (input$diffMax120mRainfallInput > 0) {s <- paste0("diff",input$diffMax120mRainfallInput,"_",s)}
+      }
+      if (s == "avg_temp") {
+        if (input$radioAvgTempInput == "None") {s <- s} 
+        else if (input$radioAvgTempInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$radioAvgTempInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$radioAvgTempInput == "Z") {s <- paste0("z_",s)}
+        if (input$diffAvgTempInput > 0) {s <- paste0("diff",input$diffAvgTempInput,"_",s)}
+      }
+      if (s == "max_temp") {
+        if (input$radioMaxTempInput == "None") {s <- s} 
+        else if (input$radioMaxTempInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$radioMaxTempInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$radioMaxTempInput == "Z") {s <- paste0("z_",s)}
+        if (input$diffMaxTempInput > 0) {s <- paste0("diff",input$diffMaxTempInput,"_",s)}
+      }
+      if (s == "min_temp") {
+        if (input$radioMinTempInput == "None") {s <- s} 
+        else if (input$radioMinTempInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$radioMinTempInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$radioMinTempInput == "Z") {s <- paste0("z_",s)}
+        if (input$diffMinTempInput > 0) {s <- paste0("diff",input$diffMinTempInput,"_",s)}
+      }
+      if (s == "avg_wind") {
+        if (input$radioAvgWindInput == "None") {s <- s} 
+        else if (input$radioAvgWindInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$radioAvgWindInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$radioAvgWindInput == "Z") {s <- paste0("z_",s)}
+        if (input$diffAvgWindInput > 0) {s <- paste0("diff",input$diffAvgWindInput,"_",s)}
+      }
+      if (s == "max_wind") {
+        if (input$radioMaxWindInput == "None") {s <- s} 
+        else if (input$radioMaxWindInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$radioMaxWindInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$radioMaxWindInput == "Z") {s <- paste0("z_",s)}
+        if (input$diffMaxWindInput > 0) {s <- paste0("diff",input$diffMaxWindInput,"_",s)}
+      }
+      v <- paste0(v,",",s)
+    }
+    
+    strr <- paste0('var_tbl %>% model(',mode,' = VAR(vars(',v,'), ic=',mode,'))')
+    var_mdl <- eval(parse(text = strr))
+    
+    # find fit
+    var_fitted <- fitted(var_mdl)[,2:3] %>% 
+      as_tibble() 
+    
+    colnames(var_fitted) <- c("Date", "Cases")
+    
+    # define types
+    var_fitted$Type <- "Fit"
+    var_slice$Type <- "Observed"
+    var_avp <- dplyr::bind_rows(var_fitted, var_slice)
+    
+    # plot
+    ggplot(data = var_avp) +
+      geom_line(aes(x = Date, y = Cases, colour = Type)) +
+      ggtitle("Observed vs Fitted")
+    
+    
+  })
+  
+  output$var_acf <- renderPlot({
+    
+    # slice dates
+    var_slice <- var_tbl %>% dplyr::filter(Date >= input$periodRangeVar[1] &
+                                             Date <= input$periodRangeVar[2])
+    
+    # Parse inputs
+    v <- "Cases"
+    mode <- '"aicc"'
+    
+    # Mega if else loop to conjure string input for VAR model formula
+    # Sorry cant think of a better way...
+    for (s in input$checkBoxVar) {
+      if (s == "avg_rainfall") {
+        if (input$radioAvgRainfallInput == "None") {s <- s} 
+        else if (input$radioAvgRainfallInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$radioAvgRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$radioAvgRainfallInput == "Z") {s <- paste0("z_",s)}
+        if (input$diffAvgRainfallInput > 0) {s <- paste0("diff",input$diffAvgRainfallInput,"_",s)}
+      }
+      if (s == "tot_rainfall") {
+        if (input$radioTotRainfallInput == "None") {s <- s} 
+        else if (input$radioTotRainfallInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$radioTotRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$radioTotRainfallInput == "Z") {s <- paste0("z_",s)}
+        if (input$diffTotRainfallInput > 0) {s <- paste0("diff",input$diffTotRainfallInput,"_",s)}
+      }
+      if (s == "max_30m_rainfall") {
+        if (input$radioMax30mRainfallInput == "None") {s <- s} 
+        else if (input$radioMax30mRainfallInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$radioMax30mRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$radioMax30mRainfallInput == "Z") {s <- paste0("z_",s)}
+        if (input$diffMax30mRainfallInput > 0) {s <- paste0("diff",input$diffMax30mRainfallInput,"_",s)}
+      }
+      if (s == "max_60m_rainfall") {
+        if (input$radioMax60mRainfallInput == "None") {s <- s} 
+        else if (input$radioMax60mRainfallInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$radioMax60mRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$radioMax60mRainfallInput == "Z") {s <- paste0("z_",s)}
+        if (input$diffMax60mRainfallInput > 0) {s <- paste0("diff",input$diffMax60mRainfallInput,"_",s)}
+      }
+      if (s == "max_120m_rainfall") {
+        if (input$radioMax120mRainfallInput == "None") {s <- s} 
+        else if (input$radioMax120mRainfallInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$radioMax120mRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$radioMax120mRainfallInput == "Z") {s <- paste0("z_",s)}
+        if (input$diffMax120mRainfallInput > 0) {s <- paste0("diff",input$diffMax120mRainfallInput,"_",s)}
+      }
+      if (s == "avg_temp") {
+        if (input$radioAvgTempInput == "None") {s <- s} 
+        else if (input$radioAvgTempInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$radioAvgTempInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$radioAvgTempInput == "Z") {s <- paste0("z_",s)}
+        if (input$diffAvgTempInput > 0) {s <- paste0("diff",input$diffAvgTempInput,"_",s)}
+      }
+      if (s == "max_temp") {
+        if (input$radioMaxTempInput == "None") {s <- s} 
+        else if (input$radioMaxTempInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$radioMaxTempInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$radioMaxTempInput == "Z") {s <- paste0("z_",s)}
+        if (input$diffMaxTempInput > 0) {s <- paste0("diff",input$diffMaxTempInput,"_",s)}
+      }
+      if (s == "min_temp") {
+        if (input$radioMinTempInput == "None") {s <- s} 
+        else if (input$radioMinTempInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$radioMinTempInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$radioMinTempInput == "Z") {s <- paste0("z_",s)}
+        if (input$diffMinTempInput > 0) {s <- paste0("diff",input$diffMinTempInput,"_",s)}
+      }
+      if (s == "avg_wind") {
+        if (input$radioAvgWindInput == "None") {s <- s} 
+        else if (input$radioAvgWindInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$radioAvgWindInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$radioAvgWindInput == "Z") {s <- paste0("z_",s)}
+        if (input$diffAvgWindInput > 0) {s <- paste0("diff",input$diffAvgWindInput,"_",s)}
+      }
+      if (s == "max_wind") {
+        if (input$radioMaxWindInput == "None") {s <- s} 
+        else if (input$radioMaxWindInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$radioMaxWindInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$radioMaxWindInput == "Z") {s <- paste0("z_",s)}
+        if (input$diffMaxWindInput > 0) {s <- paste0("diff",input$diffMaxWindInput,"_",s)}
+      }
+      v <- paste0(v,",",s)
+    }
+    
+    strr <- paste0('var_tbl %>% model(',mode,' = VAR(vars(',v,'), ic=',mode,'))')
+    var_mdl <- eval(parse(text = strr))
+    
+    # Plot ACF
+    var_mdl %>%
+      augment() %>%
+      ACF() %>%
+      autoplot() %>%
+      plot_layout(height="200%")
+    
+  })
+  
+  output$var_met <- renderTable({
+    
+    # slice dates
+    var_slice <- var_tbl %>% dplyr::filter(Date >= input$periodRangeVar[1] &
+                                             Date <= input$periodRangeVar[2])
+    
+    var_cv <- var_slice %>%
+      stretch_tsibble(.init = 0.5*nrow(var_slice), .step = 10) 
+    
+    # Parse inputs
+    v <- "Cases"
+    mode <- '"aicc"'
+    
+    # Mega if else loop to conjure string input for VAR model formula
+    # Sorry cant think of a better way...
+    for (s in input$checkBoxVar) {
+      if (s == "avg_rainfall") {
+        if (input$radioAvgRainfallInput == "None") {s <- s} 
+        else if (input$radioAvgRainfallInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$radioAvgRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$radioAvgRainfallInput == "Z") {s <- paste0("z_",s)}
+        if (input$diffAvgRainfallInput > 0) {s <- paste0("diff",input$diffAvgRainfallInput,"_",s)}
+      }
+      if (s == "tot_rainfall") {
+        if (input$radioTotRainfallInput == "None") {s <- s} 
+        else if (input$radioTotRainfallInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$radioTotRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$radioTotRainfallInput == "Z") {s <- paste0("z_",s)}
+        if (input$diffTotRainfallInput > 0) {s <- paste0("diff",input$diffTotRainfallInput,"_",s)}
+      }
+      if (s == "max_30m_rainfall") {
+        if (input$radioMax30mRainfallInput == "None") {s <- s} 
+        else if (input$radioMax30mRainfallInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$radioMax30mRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$radioMax30mRainfallInput == "Z") {s <- paste0("z_",s)}
+        if (input$diffMax30mRainfallInput > 0) {s <- paste0("diff",input$diffMax30mRainfallInput,"_",s)}
+      }
+      if (s == "max_60m_rainfall") {
+        if (input$radioMax60mRainfallInput == "None") {s <- s} 
+        else if (input$radioMax60mRainfallInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$radioMax60mRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$radioMax60mRainfallInput == "Z") {s <- paste0("z_",s)}
+        if (input$diffMax60mRainfallInput > 0) {s <- paste0("diff",input$diffMax60mRainfallInput,"_",s)}
+      }
+      if (s == "max_120m_rainfall") {
+        if (input$radioMax120mRainfallInput == "None") {s <- s} 
+        else if (input$radioMax120mRainfallInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$radioMax120mRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$radioMax120mRainfallInput == "Z") {s <- paste0("z_",s)}
+        if (input$diffMax120mRainfallInput > 0) {s <- paste0("diff",input$diffMax120mRainfallInput,"_",s)}
+      }
+      if (s == "avg_temp") {
+        if (input$radioAvgTempInput == "None") {s <- s} 
+        else if (input$radioAvgTempInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$radioAvgTempInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$radioAvgTempInput == "Z") {s <- paste0("z_",s)}
+        if (input$diffAvgTempInput > 0) {s <- paste0("diff",input$diffAvgTempInput,"_",s)}
+      }
+      if (s == "max_temp") {
+        if (input$radioMaxTempInput == "None") {s <- s} 
+        else if (input$radioMaxTempInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$radioMaxTempInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$radioMaxTempInput == "Z") {s <- paste0("z_",s)}
+        if (input$diffMaxTempInput > 0) {s <- paste0("diff",input$diffMaxTempInput,"_",s)}
+      }
+      if (s == "min_temp") {
+        if (input$radioMinTempInput == "None") {s <- s} 
+        else if (input$radioMinTempInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$radioMinTempInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$radioMinTempInput == "Z") {s <- paste0("z_",s)}
+        if (input$diffMinTempInput > 0) {s <- paste0("diff",input$diffMinTempInput,"_",s)}
+      }
+      if (s == "avg_wind") {
+        if (input$radioAvgWindInput == "None") {s <- s} 
+        else if (input$radioAvgWindInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$radioAvgWindInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$radioAvgWindInput == "Z") {s <- paste0("z_",s)}
+        if (input$diffAvgWindInput > 0) {s <- paste0("diff",input$diffAvgWindInput,"_",s)}
+      }
+      if (s == "max_wind") {
+        if (input$radioMaxWindInput == "None") {s <- s} 
+        else if (input$radioMaxWindInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$radioMaxWindInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$radioMaxWindInput == "Z") {s <- paste0("z_",s)}
+        if (input$diffMaxWindInput > 0) {s <- paste0("diff",input$diffMaxWindInput,"_",s)}
+      }
+      v <- paste0(v,",",s)
+    }
+    
+    strr <- paste0('var_cv %>% model(',mode,' = VAR(vars(',v,'), ic=',mode,')) %>% forecast(h = 1) %>% accuracy(var_slice)')
+    var_cv_metrics <- eval(parse(text = strr))
+      
+    # var_cv_metrics <- var_mdl %>%
+    #   forecast(h = 1) %>%
+    #   accuracy(var_slice)
+    
+    # generate table
+    var_cv_metrics[c(".response","RMSE","MAE","MAPE")]
+    
+  },
+  hover = TRUE,
+  bordered = TRUE,
+  striped = TRUE,
+  width = "100%",
+  align = "c",
+  caption = "<h4>Cross Validation Metrics</h4>",
+  caption.placement = getOption("xtable.caption.placement", "top"))
+  
+  
   
 }
