@@ -506,457 +506,514 @@ fluidPage(
     
   # VAR Module
   tabPanel("VAR",
-           
-           # VAR initialization column ----
-           column(
-             3,
+           tabsetPanel(
              
-             # VAR choose dates ----
-             strong("Initialization"),
-             wellPanel(
+             # VAR Tuning tab ----
+             tabPanel(
+               "Model Tuning",
+               
+               # VAR initialization column ----
+               column(
+                 3,
+                 
+                 # VAR choose dates ----
+                 strong("Initialization"),
+                 wellPanel(
+                   fluidRow(
+                     sliderInput(
+                       "periodRangeVar",
+                       "Select Period:",
+                       min = as.Date(start_date), max = as.Date(end_date),
+                       value = c(as.Date(start_date), as.Date(end_date)),
+                       timeFormat = "%Y-%m-%d",
+                       width = "90%"
+                     ),
+                     div(actionButton("initVarButton", "Begin"), style = "float:right")
+                   )
+                 ),
+                 # VAR choose variables ----
+                 conditionalPanel(
+                   condition = ("input.initVarButton > 0"),
+                   strong("Parameter Tuning"),
+                   wellPanel(
+                     fluidRow(
+                       checkboxGroupInput("checkBoxVar", "Choose variables:",
+                                          choiceNames = varList,
+                                          choiceValues = varList,
+                                          inline = FALSE
+                       )
+                     )
+                   )
+                 )
+               ),
+               # End column ----
+               
+               # VAR Added Variable column ----
+               column(
+                 3,
+                 
+                 # Avg Rainfall ----
+                 conditionalPanel(
+                   condition = ("input.checkBoxVar.includes('avg_rainfall')"),
+                   strong("Average Rainfall"),
+                   wellPanel(
+                     fluidRow(
+                       radioButtons(
+                         "radioAvgRainfallInput",
+                         "Choose transformation:",
+                         choiceNames = list("None", "Log", "MinMax", "Z"),
+                         choiceValues = list("None", "Log", "MinMax", "Z"),
+                         inline = TRUE
+                       ),
+                       tags$table(
+                         width = "100%",
+                         tags$tr(
+                           tags$td(
+                             width = "50%",
+                             strong("Differencing"),
+                             tags$br(),
+                             tags$p("Number of differencing:", style = "font-size:10px"),
+                             align = "left"
+                           ),
+                           tags$td(
+                             numericInput(inputId = "diffAvgRainfallInput",
+                                          label = NULL,
+                                          value = 0,
+                                          min = 0,
+                                          max = 3,
+                                          step = 1),
+                             width = "50%"
+                           )
+                         )
+                       )
+                     )
+                   )
+                 ),
+                 
+                 # Tot Rainfall ----
+                 conditionalPanel(
+                   condition = ("input.checkBoxVar.includes('tot_rainfall')"),
+                   strong("Total Rainfall"),
+                   wellPanel(
+                     fluidRow(
+                       radioButtons(
+                         "radioTotRainfallInput",
+                         "Choose transformation:",
+                         choiceNames = list("None", "Log", "MinMax", "Z"),
+                         choiceValues = list("None", "Log", "MinMax", "Z"),
+                         inline = TRUE
+                       ),
+                       tags$table(
+                         width = "100%",
+                         tags$tr(
+                           tags$td(
+                             width = "50%",
+                             strong("Differencing"),
+                             tags$br(),
+                             tags$p("Number of differencing:", style = "font-size:10px"),
+                             align = "left"
+                           ),
+                           tags$td(
+                             numericInput(inputId = "diffTotRainfallInput",
+                                          label = NULL,
+                                          value = 0,
+                                          min = 0,
+                                          max = 3,
+                                          step = 1),
+                             width = "50%"
+                           )
+                         )
+                       )
+                     )
+                   )
+                 ),
+                 
+                 # Max 30m Rainfall ----
+                 conditionalPanel(
+                   condition = ("input.checkBoxVar.includes('max_30m_rainfall')"),
+                   strong("Max 30m Rainfall"),
+                   wellPanel(
+                     fluidRow(
+                       radioButtons(
+                         "radioMax30mRainfallInput",
+                         "Choose transformation:",
+                         choiceNames = list("None", "Log", "MinMax", "Z"),
+                         choiceValues = list("None", "Log", "MinMax", "Z"),
+                         inline = TRUE
+                       ),
+                       tags$table(
+                         width = "100%",
+                         tags$tr(
+                           tags$td(
+                             width = "50%",
+                             strong("Differencing"),
+                             tags$br(),
+                             tags$p("Number of differencing:", style = "font-size:10px"),
+                             align = "left"
+                           ),
+                           tags$td(
+                             numericInput(inputId = "diffMax30mRainfallInput",
+                                          label = NULL,
+                                          value = 0,
+                                          min = 0,
+                                          max = 3,
+                                          step = 1),
+                             width = "50%"
+                           )
+                         )
+                       )
+                     )
+                   )
+                 ),
+                 
+                 # Max 60m Rainfall ----
+                 conditionalPanel(
+                   condition = ("input.checkBoxVar.includes('max_60m_rainfall')"),
+                   strong("Max 60m Rainfall"),
+                   wellPanel(
+                     fluidRow(
+                       radioButtons(
+                         "radioMax60mRainfallInput",
+                         "Choose transformation:",
+                         choiceNames = list("None", "Log", "MinMax", "Z"),
+                         choiceValues = list("None", "Log", "MinMax", "Z"),
+                         inline = TRUE
+                       ),
+                       tags$table(
+                         width = "100%",
+                         tags$tr(
+                           tags$td(
+                             width = "50%",
+                             strong("Differencing"),
+                             tags$br(),
+                             tags$p("Number of differencing:", style = "font-size:10px"),
+                             align = "left"
+                           ),
+                           tags$td(
+                             numericInput(inputId = "diffMax60mRainfallInput",
+                                          label = NULL,
+                                          value = 0,
+                                          min = 0,
+                                          max = 3,
+                                          step = 1),
+                             width = "50%"
+                           )
+                         )
+                       )
+                     )
+                   )
+                 ),
+                 
+                 # Max 120m Rainfall ----
+                 conditionalPanel(
+                   condition = ("input.checkBoxVar.includes('max_120m_rainfall')"),
+                   strong("Max 120m Rainfall"),
+                   wellPanel(
+                     fluidRow(
+                       radioButtons(
+                         "radioMax120mRainfallInput",
+                         "Choose transformation:",
+                         choiceNames = list("None", "Log", "MinMax", "Z"),
+                         choiceValues = list("None", "Log", "MinMax", "Z"),
+                         inline = TRUE
+                       ),
+                       tags$table(
+                         width = "100%",
+                         tags$tr(
+                           tags$td(
+                             width = "50%",
+                             strong("Differencing"),
+                             tags$br(),
+                             tags$p("Number of differencing:", style = "font-size:10px"),
+                             align = "left"
+                           ),
+                           tags$td(
+                             numericInput(inputId = "diffMax120mRainfallInput",
+                                          label = NULL,
+                                          value = 0,
+                                          min = 0,
+                                          max = 3,
+                                          step = 1),
+                             width = "50%"
+                           )
+                         )
+                       )
+                     )
+                   )
+                 ),
+                 
+                 # Avg Temp ----
+                 conditionalPanel(
+                   condition = ("input.checkBoxVar.includes('avg_temp')"),
+                   strong("Average Temperature"),
+                   wellPanel(
+                     fluidRow(
+                       radioButtons(
+                         "radioAvgTempInput",
+                         "Choose transformation:",
+                         choiceNames = list("None", "Log", "MinMax", "Z"),
+                         choiceValues = list("None", "Log", "MinMax", "Z"),
+                         inline = TRUE
+                       ),
+                       tags$table(
+                         width = "100%",
+                         tags$tr(
+                           tags$td(
+                             width = "50%",
+                             strong("Differencing"),
+                             tags$br(),
+                             tags$p("Number of differencing:", style = "font-size:10px"),
+                             align = "left"
+                           ),
+                           tags$td(
+                             numericInput(inputId = "diffAvgTempInput",
+                                          label = NULL,
+                                          value = 0,
+                                          min = 0,
+                                          max = 3,
+                                          step = 1),
+                             width = "50%"
+                           )
+                         )
+                       )
+                     )
+                   )
+                 ),
+                 
+                 # Max Temp ----
+                 conditionalPanel(
+                   condition = ("input.checkBoxVar.includes('max_temp')"),
+                   strong("Max Temperature"),
+                   wellPanel(
+                     fluidRow(
+                       radioButtons(
+                         "radioMaxTempInput",
+                         "Choose transformation:",
+                         choiceNames = list("None", "Log", "MinMax", "Z"),
+                         choiceValues = list("None", "Log", "MinMax", "Z"),
+                         inline = TRUE
+                       ),
+                       tags$table(
+                         width = "100%",
+                         tags$tr(
+                           tags$td(
+                             width = "50%",
+                             strong("Differencing"),
+                             tags$br(),
+                             tags$p("Number of differencing:", style = "font-size:10px"),
+                             align = "left"
+                           ),
+                           tags$td(
+                             numericInput(inputId = "diffMaxTempInput",
+                                          label = NULL,
+                                          value = 0,
+                                          min = 0,
+                                          max = 3,
+                                          step = 1),
+                             width = "50%"
+                           )
+                         )
+                       )
+                     )
+                   )
+                 ),
+                 
+                 # Min Temp ----
+                 conditionalPanel(
+                   condition = ("input.checkBoxVar.includes('min_temp')"),
+                   strong("Min Temperature"),
+                   wellPanel(
+                     fluidRow(
+                       radioButtons(
+                         "radioMinTempInput",
+                         "Choose transformation:",
+                         choiceNames = list("None", "Log", "MinMax", "Z"),
+                         choiceValues = list("None", "Log", "MinMax", "Z"),
+                         inline = TRUE
+                       ),
+                       tags$table(
+                         width = "100%",
+                         tags$tr(
+                           tags$td(
+                             width = "50%",
+                             strong("Differencing"),
+                             tags$br(),
+                             tags$p("Number of differencing:", style = "font-size:10px"),
+                             align = "left"
+                           ),
+                           tags$td(
+                             numericInput(inputId = "diffMinTempInput",
+                                          label = NULL,
+                                          value = 0,
+                                          min = 0,
+                                          max = 3,
+                                          step = 1),
+                             width = "50%"
+                           )
+                         )
+                       )
+                     )
+                   )
+                 ), 
+                 
+                 # Avg Wind ----
+                 conditionalPanel(
+                   condition = ("input.checkBoxVar.includes('avg_wind')"),
+                   strong("Average Wind Speed"),
+                   wellPanel(
+                     fluidRow(
+                       radioButtons(
+                         "radioAvgWindInput",
+                         "Choose transformation:",
+                         choiceNames = list("None", "Log", "MinMax", "Z"),
+                         choiceValues = list("None", "Log", "MinMax", "Z"),
+                         inline = TRUE
+                       ),
+                       tags$table(
+                         width = "100%",
+                         tags$tr(
+                           tags$td(
+                             width = "50%",
+                             strong("Differencing"),
+                             tags$br(),
+                             tags$p("Number of differencing:", style = "font-size:10px"),
+                             align = "left"
+                           ),
+                           tags$td(
+                             numericInput(inputId = "diffAvgWindInput",
+                                          label = NULL,
+                                          value = 0,
+                                          min = 0,
+                                          max = 3,
+                                          step = 1),
+                             width = "50%"
+                           )
+                         )
+                       )
+                     )
+                   )
+                 ),
+                 
+                 # Max Wind ----
+                 conditionalPanel(
+                   condition = ("input.checkBoxVar.includes('max_wind')"),
+                   strong("Max Wind Speed"),
+                   wellPanel(
+                     fluidRow(
+                       radioButtons(
+                         "radioMaxWindInput",
+                         "Choose transformation:",
+                         choiceNames = list("None", "Log", "MinMax", "Z"),
+                         choiceValues = list("None", "Log", "MinMax", "Z"),
+                         inline = TRUE
+                       ),
+                       tags$table(
+                         width = "100%",
+                         tags$tr(
+                           tags$td(
+                             width = "50%",
+                             strong("Differencing"),
+                             tags$br(),
+                             tags$p("Number of differencing:", style = "font-size:10px"),
+                             align = "left"
+                           ),
+                           tags$td(
+                             numericInput(inputId = "diffMaxWindInput",
+                                          label = NULL,
+                                          value = 0,
+                                          min = 0,
+                                          max = 3,
+                                          step = 1),
+                             width = "50%"
+                           )
+                         )
+                       )
+                     )
+                   )
+                 ),
+               ),
+               # End column ----
+               
+               # VAR Model Diagnostics column ----
+               column(
+                 6,
+                 conditionalPanel(
+                   condition = ("input.initVarButton > 0"),
+                   tabsetPanel(
+                     
+                     
+                     # VAR avp plot ----
+                     tabPanel(
+                       "Actual vs Fit",
+                       fluidRow(
+                         uiOutput("var_avp_plot")
+                       ),
+                       fluidRow(
+                         uiOutput("var_met_table")
+                       )
+                     ),
+                     # VAR acf plot ----
+                     tabPanel(
+                       "ACF",
+                       uiOutput("var_acf_plot")
+                     )
+                   )
+                 )
+               ),
+               # End column ----
+             ),
+             # End tab ----
+             
+             # VAR Forecast tab ----
+             tabPanel(
+               "Forecast",
+               
+               # VAR forecast panel ----
                fluidRow(
-                 sliderInput(
-                   "periodRangeVar",
-                   "Select Period:",
-                   min = as.Date(start_date), max = as.Date(end_date),
-                   value = c(as.Date(start_date), as.Date(end_date)),
-                   timeFormat = "%Y-%m-%d",
-                   width = "90%"
-                 ),
-                 div(actionButton("initVarButton", "Begin"), style = "float:right")
-               )
-             ),
-             # VAR choose variables ----
-             conditionalPanel(
-               condition = ("input.initVarButton > 0"),
-               strong("Parameter Tuning"),
-               wellPanel(
-                 fluidRow(
-                   checkboxGroupInput("checkBoxVar", "Choose variables:",
-                                      choiceNames = varList,
-                                      choiceValues = varList,
-                                      inline = FALSE
+                 column(
+                   3,
+                   strong("VAR Model Forecast"),
+                   wellPanel(
+                     fluidRow(
+                       tags$table(
+                         width = "100%",
+                         tags$tr(
+                           tags$td(
+                             width = "50%",
+                             strong("n ahead"),
+                             tags$br(),
+                             tags$p("Periods to forecast", style = "font-size:10px"),
+                             align = "left"
+                           ),
+                           tags$td(
+                             numericInput(inputId = "nVarInput",
+                                          label = NULL,
+                                          value = 13,
+                                          min = 1,
+                                          max = 208,
+                                          step = 1),
+                             width = "50%"
+                           )
+                         )
+                       ),
+                       div(actionButton("forecastVarButton", "Go"), style = "float:right")
+                     )
                    )
+                 )
+               ),
+               
+               # VAR forecast plot ----
+               conditionalPanel(
+                 condition = "input.forecastVarButton > 0",
+                 fluidRow(
+                   (div(style='overflow-x: scroll;',
+                        uiOutput("var_forecast_plot")))
                  )
                )
              )
-           ),
-           # End column ----
-           
-           # VAR Added Variable column ----
-           column(
-             3,
-             
-             # Avg Rainfall ----
-             conditionalPanel(
-               condition = ("input.checkBoxVar.includes('avg_rainfall')"),
-               strong("Average Rainfall"),
-               wellPanel(
-                 fluidRow(
-                   radioButtons(
-                     "radioAvgRainfallInput",
-                     "Choose transformation:",
-                     choiceNames = list("None", "Log", "MinMax", "Z"),
-                     choiceValues = list("None", "Log", "MinMax", "Z"),
-                     inline = TRUE
-                   ),
-                   tags$table(
-                     width = "100%",
-                     tags$tr(
-                       tags$td(
-                         width = "50%",
-                         strong("Differencing"),
-                         tags$br(),
-                         tags$p("Number of differencing:", style = "font-size:10px"),
-                         align = "left"
-                       ),
-                       tags$td(
-                         numericInput(inputId = "diffAvgRainfallInput",
-                                      label = NULL,
-                                      value = 0,
-                                      min = 0,
-                                      max = 3,
-                                      step = 1),
-                         width = "50%"
-                       )
-                     )
-                   )
-                 )
-               )
-             ),
-             
-             # Tot Rainfall ----
-             conditionalPanel(
-               condition = ("input.checkBoxVar.includes('tot_rainfall')"),
-               strong("Total Rainfall"),
-               wellPanel(
-                 fluidRow(
-                   radioButtons(
-                     "radioTotRainfallInput",
-                     "Choose transformation:",
-                     choiceNames = list("None", "Log", "MinMax", "Z"),
-                     choiceValues = list("None", "Log", "MinMax", "Z"),
-                     inline = TRUE
-                   ),
-                   tags$table(
-                     width = "100%",
-                     tags$tr(
-                       tags$td(
-                         width = "50%",
-                         strong("Differencing"),
-                         tags$br(),
-                         tags$p("Number of differencing:", style = "font-size:10px"),
-                         align = "left"
-                       ),
-                       tags$td(
-                         numericInput(inputId = "diffTotRainfallInput",
-                                      label = NULL,
-                                      value = 0,
-                                      min = 0,
-                                      max = 3,
-                                      step = 1),
-                         width = "50%"
-                       )
-                     )
-                   )
-                 )
-               )
-             ),
-             
-             # Max 30m Rainfall ----
-             conditionalPanel(
-               condition = ("input.checkBoxVar.includes('max_30m_rainfall')"),
-               strong("Max 30m Rainfall"),
-               wellPanel(
-                 fluidRow(
-                   radioButtons(
-                     "radioMax30mRainfallInput",
-                     "Choose transformation:",
-                     choiceNames = list("None", "Log", "MinMax", "Z"),
-                     choiceValues = list("None", "Log", "MinMax", "Z"),
-                     inline = TRUE
-                   ),
-                   tags$table(
-                     width = "100%",
-                     tags$tr(
-                       tags$td(
-                         width = "50%",
-                         strong("Differencing"),
-                         tags$br(),
-                         tags$p("Number of differencing:", style = "font-size:10px"),
-                         align = "left"
-                       ),
-                       tags$td(
-                         numericInput(inputId = "diffMax30mRainfallInput",
-                                      label = NULL,
-                                      value = 0,
-                                      min = 0,
-                                      max = 3,
-                                      step = 1),
-                         width = "50%"
-                       )
-                     )
-                   )
-                 )
-               )
-             ),
-             
-             # Max 60m Rainfall ----
-             conditionalPanel(
-               condition = ("input.checkBoxVar.includes('max_60m_rainfall')"),
-               strong("Max 60m Rainfall"),
-               wellPanel(
-                 fluidRow(
-                   radioButtons(
-                     "radioMax60mRainfallInput",
-                     "Choose transformation:",
-                     choiceNames = list("None", "Log", "MinMax", "Z"),
-                     choiceValues = list("None", "Log", "MinMax", "Z"),
-                     inline = TRUE
-                   ),
-                   tags$table(
-                     width = "100%",
-                     tags$tr(
-                       tags$td(
-                         width = "50%",
-                         strong("Differencing"),
-                         tags$br(),
-                         tags$p("Number of differencing:", style = "font-size:10px"),
-                         align = "left"
-                       ),
-                       tags$td(
-                         numericInput(inputId = "diffMax60mRainfallInput",
-                                      label = NULL,
-                                      value = 0,
-                                      min = 0,
-                                      max = 3,
-                                      step = 1),
-                         width = "50%"
-                       )
-                     )
-                   )
-                 )
-               )
-             ),
-             
-             # Max 120m Rainfall ----
-             conditionalPanel(
-               condition = ("input.checkBoxVar.includes('max_120m_rainfall')"),
-               strong("Max 120m Rainfall"),
-               wellPanel(
-                 fluidRow(
-                   radioButtons(
-                     "radioMax120mRainfallInput",
-                     "Choose transformation:",
-                     choiceNames = list("None", "Log", "MinMax", "Z"),
-                     choiceValues = list("None", "Log", "MinMax", "Z"),
-                     inline = TRUE
-                   ),
-                   tags$table(
-                     width = "100%",
-                     tags$tr(
-                       tags$td(
-                         width = "50%",
-                         strong("Differencing"),
-                         tags$br(),
-                         tags$p("Number of differencing:", style = "font-size:10px"),
-                         align = "left"
-                       ),
-                       tags$td(
-                         numericInput(inputId = "diffMax120mRainfallInput",
-                                      label = NULL,
-                                      value = 0,
-                                      min = 0,
-                                      max = 3,
-                                      step = 1),
-                         width = "50%"
-                       )
-                     )
-                   )
-                 )
-               )
-             ),
-             
-             # Avg Temp ----
-             conditionalPanel(
-               condition = ("input.checkBoxVar.includes('avg_temp')"),
-               strong("Average Temperature"),
-               wellPanel(
-                 fluidRow(
-                   radioButtons(
-                     "radioAvgTempInput",
-                     "Choose transformation:",
-                     choiceNames = list("None", "Log", "MinMax", "Z"),
-                     choiceValues = list("None", "Log", "MinMax", "Z"),
-                     inline = TRUE
-                   ),
-                   tags$table(
-                     width = "100%",
-                     tags$tr(
-                       tags$td(
-                         width = "50%",
-                         strong("Differencing"),
-                         tags$br(),
-                         tags$p("Number of differencing:", style = "font-size:10px"),
-                         align = "left"
-                       ),
-                       tags$td(
-                         numericInput(inputId = "diffAvgTempInput",
-                                      label = NULL,
-                                      value = 0,
-                                      min = 0,
-                                      max = 3,
-                                      step = 1),
-                         width = "50%"
-                       )
-                     )
-                   )
-                 )
-               )
-             ),
-             
-             # Max Temp ----
-             conditionalPanel(
-               condition = ("input.checkBoxVar.includes('max_temp')"),
-               strong("Max Temperature"),
-               wellPanel(
-                 fluidRow(
-                   radioButtons(
-                     "radioMaxTempInput",
-                     "Choose transformation:",
-                     choiceNames = list("None", "Log", "MinMax", "Z"),
-                     choiceValues = list("None", "Log", "MinMax", "Z"),
-                     inline = TRUE
-                   ),
-                   tags$table(
-                     width = "100%",
-                     tags$tr(
-                       tags$td(
-                         width = "50%",
-                         strong("Differencing"),
-                         tags$br(),
-                         tags$p("Number of differencing:", style = "font-size:10px"),
-                         align = "left"
-                       ),
-                       tags$td(
-                         numericInput(inputId = "diffMaxTempInput",
-                                      label = NULL,
-                                      value = 0,
-                                      min = 0,
-                                      max = 3,
-                                      step = 1),
-                         width = "50%"
-                       )
-                     )
-                   )
-                 )
-               )
-             ),
-             
-             # Min Temp ----
-             conditionalPanel(
-               condition = ("input.checkBoxVar.includes('min_temp')"),
-               strong("Min Temperature"),
-               wellPanel(
-                 fluidRow(
-                   radioButtons(
-                     "radioMinTempInput",
-                     "Choose transformation:",
-                     choiceNames = list("None", "Log", "MinMax", "Z"),
-                     choiceValues = list("None", "Log", "MinMax", "Z"),
-                     inline = TRUE
-                   ),
-                   tags$table(
-                     width = "100%",
-                     tags$tr(
-                       tags$td(
-                         width = "50%",
-                         strong("Differencing"),
-                         tags$br(),
-                         tags$p("Number of differencing:", style = "font-size:10px"),
-                         align = "left"
-                       ),
-                       tags$td(
-                         numericInput(inputId = "diffMinTempInput",
-                                      label = NULL,
-                                      value = 0,
-                                      min = 0,
-                                      max = 3,
-                                      step = 1),
-                         width = "50%"
-                       )
-                     )
-                   )
-                 )
-               )
-             ), 
-             
-             # Avg Wind ----
-             conditionalPanel(
-               condition = ("input.checkBoxVar.includes('avg_wind')"),
-               strong("Average Wind Speed"),
-               wellPanel(
-                 fluidRow(
-                   radioButtons(
-                     "radioAvgWindInput",
-                     "Choose transformation:",
-                     choiceNames = list("None", "Log", "MinMax", "Z"),
-                     choiceValues = list("None", "Log", "MinMax", "Z"),
-                     inline = TRUE
-                   ),
-                   tags$table(
-                     width = "100%",
-                     tags$tr(
-                       tags$td(
-                         width = "50%",
-                         strong("Differencing"),
-                         tags$br(),
-                         tags$p("Number of differencing:", style = "font-size:10px"),
-                         align = "left"
-                       ),
-                       tags$td(
-                         numericInput(inputId = "diffAvgWindInput",
-                                      label = NULL,
-                                      value = 0,
-                                      min = 0,
-                                      max = 3,
-                                      step = 1),
-                         width = "50%"
-                       )
-                     )
-                   )
-                 )
-               )
-             ),
-             
-             # Max Wind ----
-             conditionalPanel(
-               condition = ("input.checkBoxVar.includes('max_wind')"),
-               strong("Max Wind Speed"),
-               wellPanel(
-                 fluidRow(
-                   radioButtons(
-                     "radioMaxWindInput",
-                     "Choose transformation:",
-                     choiceNames = list("None", "Log", "MinMax", "Z"),
-                     choiceValues = list("None", "Log", "MinMax", "Z"),
-                     inline = TRUE
-                   ),
-                   tags$table(
-                     width = "100%",
-                     tags$tr(
-                       tags$td(
-                         width = "50%",
-                         strong("Differencing"),
-                         tags$br(),
-                         tags$p("Number of differencing:", style = "font-size:10px"),
-                         align = "left"
-                       ),
-                       tags$td(
-                         numericInput(inputId = "diffMaxWindInput",
-                                      label = NULL,
-                                      value = 0,
-                                      min = 0,
-                                      max = 3,
-                                      step = 1),
-                         width = "50%"
-                       )
-                     )
-                   )
-                 )
-               )
-             ),
-           ),
-           # End column ----
-           
-           # VAR Model Diagnostics column ----
-           column(
-             6,
-             conditionalPanel(
-               condition = ("input.initVarButton > 0"),
-               tabsetPanel(
-                 
-                 
-                 # VAR avp plot ----
-                 tabPanel(
-                   "Actual vs Fit",
-                   fluidRow(
-                     uiOutput("var_avp_plot")
-                   ),
-                   fluidRow(
-                     uiOutput("var_met_table")
-                   )
-                 ),
-                 # VAR acf plot ----
-                 tabPanel(
-                   "ACF",
-                   uiOutput("var_acf_plot")
-                 )
-               )
-             )
-           ),
-           # End column ----
+           )
   )
+  
   # End Module ----
   
 ))

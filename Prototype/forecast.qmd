@@ -268,7 +268,7 @@ var_mdl <- var_tbl %>%
 ```
 
 ```{r}
-i <- c("avg_mean_temp", "avg_daily_rainfall")
+i <- c("avg_temp", "avg_rainfall", "avg_wind", "max_temp", "min_temp", "tot_rainfall", "max_wind")
 ```
 
 ```{r}
@@ -322,14 +322,14 @@ var_cv <- var_tbl %>%
 
 var_cv_metrics <- var_cv %>%
   model(
-    aicc = VAR(vars(Cases, avg_mean_temp, avg_daily_rainfall))
+    aicc = VAR(vars(Cases))
     ) %>%
   forecast(h = 1) %>%
   accuracy(var_tbl)
 ```
 
 ```{r}
-var_cv_metrics[c(".response","RMSE","MAE","MAPE")]
+var_cv_metrics
 ```
 
 ### Forecast
