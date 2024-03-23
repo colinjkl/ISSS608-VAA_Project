@@ -13,7 +13,8 @@ pacman::p_load(
   lubridate,
   caret,
   performance,
-  ggstatsplot
+  ggstatsplot,
+  qqplotr
 )
 ```
 
@@ -91,4 +92,41 @@ df_c <- dplyr::bind_rows(df_a, df_b)
 ggplot(data = df_c) +
     geom_line(aes(x = Date, y = Cases, colour = Type)) +
     ggtitle("Observed vs Fitted")
+```
+
+### Model Diagnostics
+
+```{r}
+plots <- plot(check_model(mdl, panel = FALSE))
+```
+
+```{r}
+plots[[6]]
+```
+
+```{r}
+df_tbl <- df %>% as_tsibble(index = Date) %>% fill_gaps(.full = TRUE) %>% fill(Cases)
+
+library(patchwork)
+
+first_var <- TRUE
+for (v in i) {
+  if (first_var == TRUE) {
+    p <- eval(parse(text = paste0("df_tbl %>% autoplot(",v,")")))
+    first_var <- FALSE
+  } else {
+    p <- p / eval(parse(text = paste0("df_tbl %>% autoplot(",v,")")))
+  }
+}
+
+p
+```
+
+```{r}
+p1 <- df_tbl %>% autoplot(Cases)
+p2 <- df_tbl %>% autoplot(avg_temp)
+```
+
+```{r}
+p1 / p2
 ```

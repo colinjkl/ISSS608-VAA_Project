@@ -52,7 +52,7 @@ fluidPage(
     tabPanel("Country by Country Comparison"),
     "Explanatory Model",
     
-    # Lm module
+    # Lm module ---- 
     tabPanel("Linear Regression",
 
              # LM initialization columns ----
@@ -81,6 +81,20 @@ fluidPage(
                                       choiceNames = varList,
                                       choiceValues = varList,
                                       inline = FALSE
+                   )
+                 )
+               ),
+               
+               # Lm stepwise ----
+               strong("Stepwise Regression"),
+               wellPanel(
+                 fluidRow(
+                   radioButtons(
+                     "lmRadioStepwise",
+                     "Choose method:",
+                     choiceNames = list("None", "Forward", "Backward"),
+                     choiceValues = list("None", "Forward", "Backward"),
+                     inline = TRUE
                    )
                  )
                )
@@ -283,6 +297,29 @@ fluidPage(
                      "Coefficients",
                      fluidRow(
                        uiOutput("lm_coeff_plot")
+                     )
+                   ),
+                   tabPanel(
+                     "Diagnostics",
+                     fluidRow(
+                       selectInput("lmDiagnosticInput",
+                                   "Select Model Checks:",
+                                   choices = c("Posterior Predictive",
+                                               "Linearity",
+                                               "Homogeneity of Variance",
+                                               "Influential Observations",
+                                               "Collinearity",
+                                               "Normality of Residuals"),
+                                   selected = "Posterior Predictive")
+                     ),
+                     fluidRow(
+                       uiOutput("lm_diagnostic_plot")
+                     )
+                   ),
+                   tabPanel(
+                     "Raw Variables",
+                     fluidRow(
+                       uiOutput("lm_ts_plot")
                      )
                    )
                  )

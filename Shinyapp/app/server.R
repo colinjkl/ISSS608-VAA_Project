@@ -68,6 +68,14 @@ function(input, output, session) {
     plotOutput('lm_coeff', height=600)
   })
   
+  output$lm_diagnostic_plot <- renderUI({
+    plotOutput('lm_diagnostic', height=600)
+  })
+  
+  output$lm_ts_plot <- renderUI({
+    plotOutput('lm_ts', height = 200*(length(input$checkBoxLm)+1))
+  })
+  
   observeEvent(input$initButton, {
     output$avp_plot <- renderUI({
       plotOutput('arima_avp')
@@ -269,6 +277,13 @@ function(input, output, session) {
       # lm model
       lm_mdl <- lm(as.formula(paste0("Cases ~ ",j)), data=df_slice)
       
+      # stepwise
+      if (input$lmRadioStepwise == "Forward") {
+        lm_mdl <- step(lm_mdl, direction = "forward")
+      } else if (input$lmRadioStepwise == "Backward") {
+        lm_mdl <- step(lm_mdl, direction = "backward")
+      }
+      
       # melt results
       df_a <- data.frame(Date=df_slice$Date, Cases=lm_mdl$fitted.values, Type="Fitted")
       df_b <- data.frame(Date=df_slice$Date, Cases=df_slice$Cases, Type="Observed")
@@ -371,6 +386,15 @@ function(input, output, session) {
       
       # lm model
       lm_mdl <- lm(as.formula(paste0("Cases ~ ",j)), data=df_slice)
+      
+      # stepwise
+      if (input$lmRadioStepwise == "Forward") {
+        lm_mdl <- step(lm_mdl, direction = "forward")
+      } else if (input$lmRadioStepwise == "Backward") {
+        lm_mdl <- step(lm_mdl, direction = "backward")
+      }
+      
+      # summary of model
       summ <- summary(lm_mdl)
       
       # find MAPE
@@ -476,6 +500,13 @@ function(input, output, session) {
       # lm model
       lm_mdl <- lm(as.formula(paste0("Cases ~ ",j)), data=df_slice)
       
+      # stepwise
+      if (input$lmRadioStepwise == "Forward") {
+        lm_mdl <- step(lm_mdl, direction = "forward")
+      } else if (input$lmRadioStepwise == "Backward") {
+        lm_mdl <- step(lm_mdl, direction = "backward")
+      }
+      
       lm_mdl %>% broom::tidy()
       
     } else {
@@ -491,7 +522,9 @@ function(input, output, session) {
   bordered = TRUE,
   striped = TRUE,
   width = "100%",
-  align = "c")
+  align = "c",
+  caption = "<h4>Variables in Model (after stepwise)</h4>",
+  caption.placement = getOption("xtable.caption.placement", "top"))
   
   output$lm_coeff <- renderPlot({
     
@@ -573,6 +606,13 @@ function(input, output, session) {
       
       # lm model
       lm_mdl <- lm(as.formula(paste0("Cases ~ ",j)), data=df_slice)
+      
+      # stepwise
+      if (input$lmRadioStepwise == "Forward") {
+        lm_mdl <- step(lm_mdl, direction = "forward")
+      } else if (input$lmRadioStepwise == "Backward") {
+        lm_mdl <- step(lm_mdl, direction = "backward")
+      }
     
     # plot
       lm_mdl %>% 
@@ -582,6 +622,208 @@ function(input, output, session) {
     } else {
       ggplot() + theme_light()
     }
+    
+  })
+  
+  output$lm_diagnostic <- renderPlot({
+    
+    # slice dates
+    df_slice <- df %>% dplyr::filter(Date >= input$periodRangeLm[1] &
+                                       Date <= input$periodRangeLm[2])
+    
+    # lm formula construction
+    j <- ""
+    for (s in input$checkBoxLm) {
+      if (s == "avg_rainfall") {
+        if (input$lmRadioAvgRainfallInput == "None") {s <- s} 
+        else if (input$lmRadioAvgRainfallInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$lmRadioAvgRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$lmRadioAvgRainfallInput == "Z") {s <- paste0("z_",s)}
+      }
+      if (s == "tot_rainfall") {
+        if (input$lmRadioTotRainfallInput == "None") {s <- s} 
+        else if (input$lmRadioTotRainfallInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$lmRadioTotRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$lmRadioTotRainfallInput == "Z") {s <- paste0("z_",s)}
+      }
+      if (s == "max_30m_rainfall") {
+        if (input$lmRadioMax30mRainfallInput == "None") {s <- s} 
+        else if (input$lmRadioMax30mRainfallInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$lmRadioMax30mRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$lmRadioMax30mRainfallInput == "Z") {s <- paste0("z_",s)}
+      }
+      if (s == "max_60m_rainfall") {
+        if (input$lmRadioMax60mRainfallInput == "None") {s <- s} 
+        else if (input$lmRadioMax60mRainfallInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$lmRadioMax60mRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$lmRadioMax60mRainfallInput == "Z") {s <- paste0("z_",s)}
+      }
+      if (s == "max_120m_rainfall") {
+        if (input$lmRadioMax120mRainfallInput == "None") {s <- s} 
+        else if (input$lmRadioMax120mRainfallInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$lmRadioMax120mRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$lmRadioMax120mRainfallInput == "Z") {s <- paste0("z_",s)}
+      }
+      if (s == "avg_temp") {
+        if (input$lmRadioAvgTempInput == "None") {s <- s} 
+        else if (input$lmRadioAvgTempInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$lmRadioAvgTempInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$lmRadioAvgTempInput == "Z") {s <- paste0("z_",s)}
+      }
+      if (s == "max_temp") {
+        if (input$lmRadioMaxTempInput == "None") {s <- s} 
+        else if (input$lmRadioMaxTempInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$lmRadioMaxTempInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$lmRadioMaxTempInput == "Z") {s <- paste0("z_",s)}
+      }
+      if (s == "min_temp") {
+        if (input$lmRadioMinTempInput == "None") {s <- s} 
+        else if (input$lmRadioMinTempInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$lmRadioMinTempInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$lmRadioMinTempInput == "Z") {s <- paste0("z_",s)}
+      }
+      if (s == "avg_wind") {
+        if (input$lmRadioAvgWindInput == "None") {s <- s} 
+        else if (input$lmRadioAvgWindInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$lmRadioAvgWindInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$lmRadioAvgWindInput == "Z") {s <- paste0("z_",s)}
+      }
+      if (s == "max_wind") {
+        if (input$lmRadioMaxWindInput == "None") {s <- s} 
+        else if (input$lmRadioMaxWindInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$lmRadioMaxWindInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$lmRadioMaxWindInput == "Z") {s <- paste0("z_",s)}
+      }
+      if (j == "") {
+        j <- s
+      } else {
+        j <- paste0(j,"+",s)
+      }
+    }
+    
+    if (j != "") {
+      
+      # lm model
+      lm_mdl <- lm(as.formula(paste0("Cases ~ ",j)), data=df_slice)
+      
+      # stepwise
+      if (input$lmRadioStepwise == "Forward") {
+        lm_mdl <- step(lm_mdl, direction = "forward")
+      } else if (input$lmRadioStepwise == "Backward") {
+        lm_mdl <- step(lm_mdl, direction = "backward")
+      }
+      
+      
+      # Create plots
+      plots <- plot(check_model(lm_mdl, panel = FALSE))
+      
+      if (input$lmDiagnosticInput == "Posterior Predictive") {
+        plots[[1]]
+      } else if (input$lmDiagnosticInput == "Linearity") {
+        plots[[2]]
+      } else if (input$lmDiagnosticInput == "Homogeneity of Variance") {
+        plots[[3]]
+      } else if (input$lmDiagnosticInput == "Influential Observations") {
+        plots[[4]]
+      } else if (input$lmDiagnosticInput == "Collinearity") {
+        plots[[5]]
+      } else if (input$lmDiagnosticInput == "Normality of Residuals") {
+        plots[[6]]
+      }
+    } else {
+      ggplot() + theme_light()
+    } 
+    
+  })
+  
+  output$lm_ts <- renderPlot({
+    
+    # slice dates
+    df_slice <- df %>% dplyr::filter(Date >= input$periodRangeLm[1] &
+                                       Date <= input$periodRangeLm[2])
+    
+    # lm formula construction
+    j <- c("Cases")
+    for (s in input$checkBoxLm) {
+      if (s == "avg_rainfall") {
+        if (input$lmRadioAvgRainfallInput == "None") {s <- s} 
+        else if (input$lmRadioAvgRainfallInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$lmRadioAvgRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$lmRadioAvgRainfallInput == "Z") {s <- paste0("z_",s)}
+      }
+      if (s == "tot_rainfall") {
+        if (input$lmRadioTotRainfallInput == "None") {s <- s} 
+        else if (input$lmRadioTotRainfallInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$lmRadioTotRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$lmRadioTotRainfallInput == "Z") {s <- paste0("z_",s)}
+      }
+      if (s == "max_30m_rainfall") {
+        if (input$lmRadioMax30mRainfallInput == "None") {s <- s} 
+        else if (input$lmRadioMax30mRainfallInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$lmRadioMax30mRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$lmRadioMax30mRainfallInput == "Z") {s <- paste0("z_",s)}
+      }
+      if (s == "max_60m_rainfall") {
+        if (input$lmRadioMax60mRainfallInput == "None") {s <- s} 
+        else if (input$lmRadioMax60mRainfallInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$lmRadioMax60mRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$lmRadioMax60mRainfallInput == "Z") {s <- paste0("z_",s)}
+      }
+      if (s == "max_120m_rainfall") {
+        if (input$lmRadioMax120mRainfallInput == "None") {s <- s} 
+        else if (input$lmRadioMax120mRainfallInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$lmRadioMax120mRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$lmRadioMax120mRainfallInput == "Z") {s <- paste0("z_",s)}
+      }
+      if (s == "avg_temp") {
+        if (input$lmRadioAvgTempInput == "None") {s <- s} 
+        else if (input$lmRadioAvgTempInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$lmRadioAvgTempInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$lmRadioAvgTempInput == "Z") {s <- paste0("z_",s)}
+      }
+      if (s == "max_temp") {
+        if (input$lmRadioMaxTempInput == "None") {s <- s} 
+        else if (input$lmRadioMaxTempInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$lmRadioMaxTempInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$lmRadioMaxTempInput == "Z") {s <- paste0("z_",s)}
+      }
+      if (s == "min_temp") {
+        if (input$lmRadioMinTempInput == "None") {s <- s} 
+        else if (input$lmRadioMinTempInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$lmRadioMinTempInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$lmRadioMinTempInput == "Z") {s <- paste0("z_",s)}
+      }
+      if (s == "avg_wind") {
+        if (input$lmRadioAvgWindInput == "None") {s <- s} 
+        else if (input$lmRadioAvgWindInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$lmRadioAvgWindInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$lmRadioAvgWindInput == "Z") {s <- paste0("z_",s)}
+      }
+      if (s == "max_wind") {
+        if (input$lmRadioMaxWindInput == "None") {s <- s} 
+        else if (input$lmRadioMaxWindInput == "Log") {s <- paste0("log_",s)} 
+        else if (input$lmRadioMaxWindInput == "MinMax") {s <- paste0("mm_",s)} 
+        else if (input$lmRadioMaxWindInput == "Z") {s <- paste0("z_",s)}
+      }
+
+      j <- c(j, s)
+
+    }
+    
+    lm_tbl <- df_slice %>% as_tsibble(index = Date) %>% fill_gaps(.full = TRUE) %>% fill(Cases)
+    
+    first_var <- TRUE
+    for (v in j) {
+      if (first_var == TRUE) {
+        p <- eval(parse(text = paste0("lm_tbl %>% autoplot(",v,")")))
+        first_var <- FALSE
+      } else {
+        p <- p / eval(parse(text = paste0("lm_tbl %>% autoplot(",v,")")))
+      }
+    }
+    
+    p
+    
     
   })
   
