@@ -60,6 +60,10 @@ ggcoefstats(mdl,
             output = "plot")
 ```
 
+```{r}
+ggplot()
+```
+
 ### Model Metrics
 
 ```{r}

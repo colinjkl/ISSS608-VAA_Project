@@ -11,14 +11,14 @@ library(shiny)
 
 pacman::p_load(
   shiny,
-  shinyjs,
   tidyverse,
   fable,
   tsibble,
   feasts,
   patchwork,
   plotly,
-  ggstatsplot
+  ggstatsplot,
+  MLmetrics
 )
 
 df <- read_csv("data/dengue_climate_joined_by_week_transformed_diff.csv")
@@ -31,7 +31,7 @@ varList <- colnames(df[!grepl("^z_|^mm_|^log_|^diff|Year|WkNo|Cases|Date", colna
 arima_ts <-  df %>% dplyr::select(Date, Cases)
 arima_tbl <- arima_ts %>% as_tsibble(index = Date) %>% fill_gaps(.full = TRUE) %>% fill(Cases)
 
-start_date <- arima_tbl$Date[length(arima_tbl)]
+start_date <- arima_tbl$Date[34]
 end_date <- arima_tbl$Date[nrow(arima_tbl)]
 
 
@@ -54,11 +54,11 @@ fluidPage(
     
     # Lm module
     tabPanel("Linear Regression",
-             
+
              # LM initialization columns ----
              column(
                3,
-               
+
                # LM choose dates ----
                strong("Choose Dates"),
                wellPanel(
@@ -86,11 +86,11 @@ fluidPage(
                )
              ),
              # End column ----
-             
+
              # LM added variable column ----
              column(
                3,
-               
+
                # Avg Rainfall ----
                conditionalPanel(
                  condition = ("input.checkBoxLm.includes('avg_rainfall')"),
@@ -107,7 +107,7 @@ fluidPage(
                    )
                  )
                ),
-               
+
                # Tot Rainfall ----
                conditionalPanel(
                  condition = ("input.checkBoxLm.includes('tot_rainfall')"),
@@ -124,7 +124,7 @@ fluidPage(
                    )
                  )
                ),
-               
+
                # Max 30m Rainfall ----
                conditionalPanel(
                  condition = ("input.checkBoxLm.includes('max_30m_rainfall')"),
@@ -141,7 +141,7 @@ fluidPage(
                    )
                  )
                ),
-               
+
                # Max 60m Rainfall ----
                conditionalPanel(
                  condition = ("input.checkBoxLm.includes('max_60m_rainfall')"),
@@ -158,7 +158,7 @@ fluidPage(
                    )
                  )
                ),
-               
+
                # Max 120m Rainfall ----
                conditionalPanel(
                  condition = ("input.checkBoxLm.includes('max_120m_rainfall')"),
@@ -175,7 +175,7 @@ fluidPage(
                    )
                  )
                ),
-               
+
                # Avg Temp ----
                conditionalPanel(
                  condition = ("input.checkBoxLm.includes('avg_temp')"),
@@ -192,7 +192,7 @@ fluidPage(
                    )
                  )
                ),
-               
+
                # Max Temp ----
                conditionalPanel(
                  condition = ("input.checkBoxLm.includes('max_temp')"),
@@ -209,7 +209,7 @@ fluidPage(
                    )
                  )
                ),
-               
+
                # Min Temp ----
                conditionalPanel(
                  condition = ("input.checkBoxLm.includes('min_temp')"),
@@ -225,8 +225,8 @@ fluidPage(
                      )
                    )
                  )
-               ), 
-               
+               ),
+
                # Avg Wind ----
                conditionalPanel(
                  condition = ("input.checkBoxLm.includes('avg_wind')"),
@@ -243,7 +243,7 @@ fluidPage(
                    )
                  )
                ),
-               
+
                # Max Wind ----
                conditionalPanel(
                  condition = ("input.checkBoxLm.includes('max_wind')"),
@@ -262,39 +262,39 @@ fluidPage(
                ),
              ),
              # End column ----
-             
+
              # LM diagnostic column ----
              column(
                6,
-               tabsetPanel(
-                 tabPanel(
-                   "Observed vs Fitted",
-                   conditionalPanel(
-                     condition = "input.checkBoxLm.is_empty() == FALSE",
+                 tabsetPanel(
+                   tabPanel(
+                     "Observed vs Fitted",
                      fluidRow(
                        uiOutput("lm_avp_plot")
                      ),
                      fluidRow(
-                       strong("some metric table")
+                       uiOutput("lm_metric_table_1")
+                     ),
+                     fluidRow(
+                       uiOutput("lm_metric_table_2")
                      )
-                   )
-                 ),
-                 tabPanel(
-                   "Coefficients",
-                   conditionalPanel(
-                     condition = "input.checkBoxLm.is_empty() == FALSE",
+                   ),
+                   tabPanel(
+                     "Coefficients",
                      fluidRow(
                        uiOutput("lm_coeff_plot")
                      )
                    )
                  )
-               )
              )
-             
-             ),
+             # End column ----
+    ),
+    # End Module ----
+    
+    # New Section
     "Univariate Time Series",
     
-    # ARIMA Module
+    # ARIMA Module ----
     tabPanel("ARIMA",
              
              # ARIMA Initialization column ----
@@ -744,7 +744,7 @@ fluidPage(
     ),
     # End Module ----
     
-  # VAR Module
+  # VAR Module ----
   tabPanel("VAR",
            tabsetPanel(
              
