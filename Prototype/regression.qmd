@@ -1,0 +1,90 @@
+---
+title: "regression"
+---
+
+```{r}
+pacman::p_load(
+  tidyverse,
+  fable,
+  tsibble,
+  feasts,
+  patchwork,
+  plotly,
+  lubridate,
+  caret,
+  performance,
+  ggstatsplot
+)
+```
+
+```{r}
+df <- read_csv("data/dengue_climate_joined_by_week_transformed_diff.csv")
+```
+
+```{r}
+mdl <- lm(Cases ~ avg_temp, data = df)
+```
+
+### Model Construct
+
+```{r}
+i <- c("avg_temp","tot_rainfall","avg_wind")
+j <- ""
+for (v in i) {
+  if (j == "") {
+    j <- v
+  } else {
+    j <- paste0(j,"+",v)
+  }
+}
+
+mdl <- lm(as.formula(paste0("Cases ~ ",j)), data=df)
+```
+
+```{r}
+length(c())
+```
+
+```{r}
+summary(mdl)
+```
+
+```{r}
+mdl$fitted.values %>% as.data.frame()
+```
+
+### Model coeff plot
+
+```{r}
+ggcoefstats(mdl, 
+            output = "plot")
+```
+
+### Model Metrics
+
+```{r}
+mdl %>% broom::tidy()
+```
+
+```{r}
+summ <- summary(mdl)
+
+summ$adj.r.squared
+```
+
+```{r}
+summ$fstatistic[[1]]
+```
+
+### AVP
+
+```{r}
+df_a <- data.frame(Date=df$Date, Cases=mdl$fitted.values, Type="Fitted")
+df_b <- data.frame(Date=df$Date, Cases=df$Cases, Type="Observed")
+
+df_c <- dplyr::bind_rows(df_a, df_b)
+
+ggplot(data = df_c) +
+    geom_line(aes(x = Date, y = Cases, colour = Type)) +
+    ggtitle("Observed vs Fitted")
+```

@@ -17,7 +17,8 @@ pacman::p_load(
   tsibble,
   feasts,
   patchwork,
-  plotly
+  plotly,
+  ggstatsplot
 )
 
 df <- read_csv("data/dengue_climate_joined_by_week_transformed_diff.csv")
@@ -49,9 +50,248 @@ fluidPage(
     "EDA",
     tabPanel("Distribution"),
     tabPanel("Country by Country Comparison"),
-    "Variable Selection",
-    tabPanel("Correlation"),
-    tabPanel("Feature Importance"),
+    "Explanatory Model",
+    
+    # Lm module
+    tabPanel("Linear Regression",
+             
+             # LM initialization columns ----
+             column(
+               3,
+               
+               # LM choose dates ----
+               strong("Choose Dates"),
+               wellPanel(
+                 fluidRow(
+                   sliderInput(
+                     "periodRangeLm",
+                     "Select Period:",
+                     min = as.Date(start_date), max = as.Date(end_date),
+                     value = c(as.Date(start_date), as.Date(end_date)),
+                     timeFormat = "%Y-%m-%d",
+                     width = "90%"
+                   )
+                 )
+               ),
+               # Lm choose variables ----
+               strong("Parameter Tuning"),
+               wellPanel(
+                 fluidRow(
+                   checkboxGroupInput("checkBoxLm", "Choose variables:",
+                                      choiceNames = varList,
+                                      choiceValues = varList,
+                                      inline = FALSE
+                   )
+                 )
+               )
+             ),
+             # End column ----
+             
+             # LM added variable column ----
+             column(
+               3,
+               
+               # Avg Rainfall ----
+               conditionalPanel(
+                 condition = ("input.checkBoxLm.includes('avg_rainfall')"),
+                 strong("Average Rainfall"),
+                 wellPanel(
+                   fluidRow(
+                     radioButtons(
+                       "lmRadioAvgRainfallInput",
+                       "Choose transformation:",
+                       choiceNames = list("None", "Log", "MinMax", "Z"),
+                       choiceValues = list("None", "Log", "MinMax", "Z"),
+                       inline = TRUE
+                     )
+                   )
+                 )
+               ),
+               
+               # Tot Rainfall ----
+               conditionalPanel(
+                 condition = ("input.checkBoxLm.includes('tot_rainfall')"),
+                 strong("Total Rainfall"),
+                 wellPanel(
+                   fluidRow(
+                     radioButtons(
+                       "lmRadioTotRainfallInput",
+                       "Choose transformation:",
+                       choiceNames = list("None", "Log", "MinMax", "Z"),
+                       choiceValues = list("None", "Log", "MinMax", "Z"),
+                       inline = TRUE
+                     )
+                   )
+                 )
+               ),
+               
+               # Max 30m Rainfall ----
+               conditionalPanel(
+                 condition = ("input.checkBoxLm.includes('max_30m_rainfall')"),
+                 strong("Max 30m Rainfall"),
+                 wellPanel(
+                   fluidRow(
+                     radioButtons(
+                       "lmRadioMax30mRainfallInput",
+                       "Choose transformation:",
+                       choiceNames = list("None", "Log", "MinMax", "Z"),
+                       choiceValues = list("None", "Log", "MinMax", "Z"),
+                       inline = TRUE
+                     )
+                   )
+                 )
+               ),
+               
+               # Max 60m Rainfall ----
+               conditionalPanel(
+                 condition = ("input.checkBoxLm.includes('max_60m_rainfall')"),
+                 strong("Max 60m Rainfall"),
+                 wellPanel(
+                   fluidRow(
+                     radioButtons(
+                       "lmRadioMax60mRainfallInput",
+                       "Choose transformation:",
+                       choiceNames = list("None", "Log", "MinMax", "Z"),
+                       choiceValues = list("None", "Log", "MinMax", "Z"),
+                       inline = TRUE
+                     )
+                   )
+                 )
+               ),
+               
+               # Max 120m Rainfall ----
+               conditionalPanel(
+                 condition = ("input.checkBoxLm.includes('max_120m_rainfall')"),
+                 strong("Max 120m Rainfall"),
+                 wellPanel(
+                   fluidRow(
+                     radioButtons(
+                       "lmRadioMax120mRainfallInput",
+                       "Choose transformation:",
+                       choiceNames = list("None", "Log", "MinMax", "Z"),
+                       choiceValues = list("None", "Log", "MinMax", "Z"),
+                       inline = TRUE
+                     )
+                   )
+                 )
+               ),
+               
+               # Avg Temp ----
+               conditionalPanel(
+                 condition = ("input.checkBoxLm.includes('avg_temp')"),
+                 strong("Average Temperature"),
+                 wellPanel(
+                   fluidRow(
+                     radioButtons(
+                       "lmRadioAvgTempInput",
+                       "Choose transformation:",
+                       choiceNames = list("None", "Log", "MinMax", "Z"),
+                       choiceValues = list("None", "Log", "MinMax", "Z"),
+                       inline = TRUE
+                     )
+                   )
+                 )
+               ),
+               
+               # Max Temp ----
+               conditionalPanel(
+                 condition = ("input.checkBoxLm.includes('max_temp')"),
+                 strong("Max Temperature"),
+                 wellPanel(
+                   fluidRow(
+                     radioButtons(
+                       "lmRadioMaxTempInput",
+                       "Choose transformation:",
+                       choiceNames = list("None", "Log", "MinMax", "Z"),
+                       choiceValues = list("None", "Log", "MinMax", "Z"),
+                       inline = TRUE
+                     )
+                   )
+                 )
+               ),
+               
+               # Min Temp ----
+               conditionalPanel(
+                 condition = ("input.checkBoxLm.includes('min_temp')"),
+                 strong("Min Temperature"),
+                 wellPanel(
+                   fluidRow(
+                     radioButtons(
+                       "lmRadioMinTempInput",
+                       "Choose transformation:",
+                       choiceNames = list("None", "Log", "MinMax", "Z"),
+                       choiceValues = list("None", "Log", "MinMax", "Z"),
+                       inline = TRUE
+                     )
+                   )
+                 )
+               ), 
+               
+               # Avg Wind ----
+               conditionalPanel(
+                 condition = ("input.checkBoxLm.includes('avg_wind')"),
+                 strong("Average Wind Speed"),
+                 wellPanel(
+                   fluidRow(
+                     radioButtons(
+                       "lmRadioAvgWindInput",
+                       "Choose transformation:",
+                       choiceNames = list("None", "Log", "MinMax", "Z"),
+                       choiceValues = list("None", "Log", "MinMax", "Z"),
+                       inline = TRUE
+                     )
+                   )
+                 )
+               ),
+               
+               # Max Wind ----
+               conditionalPanel(
+                 condition = ("input.checkBoxLm.includes('max_wind')"),
+                 strong("Max Wind Speed"),
+                 wellPanel(
+                   fluidRow(
+                     radioButtons(
+                       "lmRadioMaxWindInput",
+                       "Choose transformation:",
+                       choiceNames = list("None", "Log", "MinMax", "Z"),
+                       choiceValues = list("None", "Log", "MinMax", "Z"),
+                       inline = TRUE
+                     )
+                   )
+                 )
+               ),
+             ),
+             # End column ----
+             
+             # LM diagnostic column ----
+             column(
+               6,
+               tabsetPanel(
+                 tabPanel(
+                   "Observed vs Fitted",
+                   conditionalPanel(
+                     condition = "input.checkBoxLm.is_empty() == FALSE",
+                     fluidRow(
+                       uiOutput("lm_avp_plot")
+                     ),
+                     fluidRow(
+                       strong("some metric table")
+                     )
+                   )
+                 ),
+                 tabPanel(
+                   "Coefficients",
+                   conditionalPanel(
+                     condition = "input.checkBoxLm.is_empty() == FALSE",
+                     fluidRow(
+                       uiOutput("lm_coeff_plot")
+                     )
+                   )
+                 )
+               )
+             )
+             
+             ),
     "Univariate Time Series",
     
     # ARIMA Module
@@ -235,7 +475,7 @@ fluidPage(
     ),
     # End Module ----
     
-    # ETS Module
+    # ETS Module ----
     tabPanel("ETS",
              
              # ETS initialization column ----
