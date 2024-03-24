@@ -409,9 +409,42 @@ ggplotly(
 ```
 
 ```{r}
-colnames(var_fitted) <- c("Date", "Cases1", "Type")
+ci <- hilo(fc)
+
+ci$`80%`[[v]]$upper
 ```
 
 ```{r}
-print(df)
+v <- "avg_temp"
+
+var_fc <- data.frame(Date=fc$Date, 
+                     temp=fc$.mean[,v],
+                     lwr80=ci$`80%`[[v]]$lower,
+                     upr80=ci$`80%`[[v]]$upper,
+                     lwr95=ci$`95%`[[v]]$lower,
+                     upr95=ci$`95%`[[v]]$upper,
+                     Type="Forecast")
+
+colnames(var_fc)[2] <- v
+
+var_obs <- data.frame(Date=var_tbl$Date, 
+                      temp=var_tbl[v],
+                      lwr80=NA,
+                      upr80=NA,
+                      lwr95=NA,
+                      upr95=NA,
+                      Type="Observed")
+
+var_plot <- dplyr::bind_rows(var_obs, var_fc)
+```
+
+```{r}
+
+
+ggplot(data = var_plot, aes(x=Date, y=.data[[v]] ,colour=Type)) + 
+  geom_line() +
+  geom_ribbon(aes(ymin=lwr80, ymax=upr80), alpha=0.2, linetype=0, fill="blue") +
+  geom_ribbon(aes(ymin=lwr95, ymax=upr95), alpha=0.1, linetype=0, fill="blue") + 
+  scale_colour_manual(values = c("Observed"="black", "Forecast"="blue")) +
+  ggtitle(paste0("Forecast ",v," for next n periods"))
 ```

@@ -18,7 +18,10 @@ pacman::p_load(
   patchwork,
   plotly,
   ggstatsplot,
-  MLmetrics
+  MLmetrics,
+  performance,
+  caret,
+  ggstatsplot
 )
 
 df <- read_csv("data/dengue_climate_joined_by_week_transformed_diff.csv")
@@ -349,107 +352,101 @@ fluidPage(
                      value = c(as.Date(start_date), as.Date(end_date)),
                      timeFormat = "%Y-%m-%d",
                      width = "90%"
-                   ),
-                   div(actionButton("initButton", "Begin"), style = "float:right")
+                   )
                  )
                ),
                
                # ARIMA parameter tuning ----
-               conditionalPanel(
-                 condition = ("input.initButton > 0"),
-                 strong("Parameter Tuning"),
-                 wellPanel(
-                   fluidRow(
-                     tags$table(
-                       width = "100%",
-                       tags$tr(
-                         tags$td(
-                           width = "50%",
-                           strong("p"),
-                           tags$br(),
-                           tags$p("Autoregression", style = "font-size:10px"),
-                           align = "left"
-                         ),
-                         tags$td(
-                           numericInput(inputId = "pInput",
-                                        label = NULL,
-                                        value = 0,
-                                        min = 0,
-                                        max = 9,
-                                        step = 1),
-                           width = "50%"
-                         )
+               strong("Parameter Tuning"),
+               wellPanel(
+                 fluidRow(
+                   tags$table(
+                     width = "100%",
+                     tags$tr(
+                       tags$td(
+                         width = "50%",
+                         strong("p"),
+                         tags$br(),
+                         tags$p("Autoregression", style = "font-size:10px"),
+                         align = "left"
                        ),
-                       tags$tr(
-                         tags$td(
-                           width = "50%",
-                           strong("d"),
-                           tags$br(),
-                           tags$p("Differencing", style = "font-size:10px"),
-                           align = "left"
-                         ),
-                         tags$td(
-                           numericInput(inputId = "dInput",
-                                        label = NULL,
-                                        value = 0,
-                                        min = 0,
-                                        max = 9,
-                                        step = 1),
-                           width = "50%"
-                         )
+                       tags$td(
+                         numericInput(inputId = "pInput",
+                                      label = NULL,
+                                      value = 0,
+                                      min = 0,
+                                      max = 9,
+                                      step = 1),
+                         width = "50%"
+                       )
+                     ),
+                     tags$tr(
+                       tags$td(
+                         width = "50%",
+                         strong("d"),
+                         tags$br(),
+                         tags$p("Differencing", style = "font-size:10px"),
+                         align = "left"
                        ),
-                       tags$tr(
-                         tags$td(
-                           width = "50%",
-                           strong("q"),
-                           tags$br(),
-                           tags$p("Moving Average", style = "font-size:10px"),
-                           align = "left"
-                         ),
-                         tags$td(
-                           numericInput(inputId = "qInput",
-                                        label = NULL,
-                                        value = 0,
-                                        min = 0,
-                                        max = 9,
-                                        step = 1),
-                           width = "50%"
-                         )
+                       tags$td(
+                         numericInput(inputId = "dInput",
+                                      label = NULL,
+                                      value = 0,
+                                      min = 0,
+                                      max = 9,
+                                      step = 1),
+                         width = "50%"
+                       )
+                     ),
+                     tags$tr(
+                       tags$td(
+                         width = "50%",
+                         strong("q"),
+                         tags$br(),
+                         tags$p("Moving Average", style = "font-size:10px"),
+                         align = "left"
+                       ),
+                       tags$td(
+                         numericInput(inputId = "qInput",
+                                      label = NULL,
+                                      value = 0,
+                                      min = 0,
+                                      max = 9,
+                                      step = 1),
+                         width = "50%"
                        )
                      )
-                   )
+                   ),
+                   div(actionButton("arimaTuneButton", "Tune"), style = "float:right")
                  )
                ),
                
                # ARIMA forecast panel ----
-               conditionalPanel(
-                 condition = ("input.initButton > 0"),
-                 strong("Forecast"),
-                 wellPanel(
-                   fluidRow(
-                     tags$table(
-                       width = "100%",
-                       tags$tr(
-                         tags$td(
-                           width = "50%",
-                           strong("n ahead"),
-                           tags$br(),
-                           tags$p("Periods to forecast", style = "font-size:10px"),
-                           align = "left"
-                         ),
-                         tags$td(
-                           numericInput(inputId = "nInput",
-                                        label = NULL,
-                                        value = 13,
-                                        min = 1,
-                                        max = 208,
-                                        step = 1),
-                           width = "50%"
-                         )
+               strong("Forecast"),
+               wellPanel(
+                 fluidRow(
+                   tags$table(
+                     width = "100%",
+                     tags$tr(
+                       tags$td(
+                         width = "50%",
+                         strong("n ahead"),
+                         tags$br(),
+                         tags$p("Periods to forecast", style = "font-size:10px"),
+                         align = "left"
+                       ),
+                       tags$td(
+                         numericInput(inputId = "nInput",
+                                      label = NULL,
+                                      value = 13,
+                                      min = 1,
+                                      max = 208,
+                                      step = 1),
+                         width = "50%"
                        )
-                     ),
-                     div(actionButton("forecastButton", "Go"), style = "float:right")
-                   )
+                     )
+                   ),
+                   div(actionButton("forecastArimaButton", "Go"), style = "float:right")
                  )
                )
              ),
@@ -458,28 +455,25 @@ fluidPage(
              # ARIMA Diagnostics column ----
              column(
                4,
-               conditionalPanel(
-                 condition = ("input.initButton > 0"),
-                 tabsetPanel(
-                   # ARIMA avp plot ----
-                   tabPanel(
-                     "Actual vs Fit",
-                     fluidRow(
-                       uiOutput("avp_plot")
-                     )
-                   ),
-                   # ARIMA residual plot ----
-                   tabPanel(
-                     "Residuals",
-                     fluidRow(
-                       uiOutput("residual_plot")
-                     )
+               tabsetPanel(
+                 # ARIMA avp plot ----
+                 tabPanel(
+                   "Actual vs Fit",
+                   fluidRow(
+                     plotOutput("arima_avp")
                    )
                  ),
-                 # ARIMA metric table ----
-                 fluidRow(
-                   uiOutput("metric_table")
+                 # ARIMA residual plot ----
+                 tabPanel(
+                   "Residuals",
+                   fluidRow(
+                     plotOutput("arima_rdl")
+                   )
                  )
+               ),
+               # ARIMA metric table ----
+               fluidRow(
+                 tableOutput("arima_met")
                )
              ),
              # End column ----
@@ -487,23 +481,20 @@ fluidPage(
              # ARIMA Forecast column ----
              column(
                5,
-               conditionalPanel(
-                 condition = ("input.forecastButton > 0"),
-                 tabsetPanel(
-                   # ARIMA forecast plot ----
-                   tabPanel(
-                     "Forecast",
-                     fluidRow(
-                       uiOutput("forecast_plot")
-                     )
-                   ),
-                   # ARIMA forecast data table ----
-                   tabPanel(
-                     "Data table",
-                     fluidRow(
-                       style = "padding:5%;",
-                       uiOutput("results_table")
-                     )
+               tabsetPanel(
+                 # ARIMA forecast plot ----
+                 tabPanel(
+                   "Forecast",
+                   fluidRow(
+                     plotOutput("arima_forecast")
+                   )
+                 ),
+                 # ARIMA forecast data table ----
+                 tabPanel(
+                   "Data table",
+                   fluidRow(
+                     style = "padding:5%;",
+                     tableOutput("arima_results")
                    )
                  )
                )
@@ -530,71 +521,67 @@ fluidPage(
                      value = c(as.Date(start_date), as.Date(end_date)),
                      timeFormat = "%Y-%m-%d",
                      width = "90%"
-                   ),
-                   div(actionButton("initEtsButton", "Begin"), style = "float:right")
+                   )
                  )
                ),
                
                # ETS parameter tuning 1 ----
-               conditionalPanel(
-                 condition = ("input.initEtsButton > 0"),
-                 strong("Parameter Tuning"),
-                 wellPanel(
-                   fluidRow(
-                     tags$table(
-                       width = "100%",
-                       tags$tr(
-                         tags$td(
-                           width = "50%",
-                           strong("Error"),
-                           tags$br(),
-                           tags$p("Form of error term", style = "font-size:10px"),
-                           align = "left"
-                         ),
-                         tags$td(
-                           selectInput(inputId = "eInput",
-                                       label = NULL,
-                                       choices = c("Additive" = "A",
-                                                   "Multiplicative" = "M"),
-                                       selected = "Additive"),
-                           width = "50%"
-                         )
+               strong("Parameter Tuning"),
+               wellPanel(
+                 fluidRow(
+                   tags$table(
+                     width = "100%",
+                     tags$tr(
+                       tags$td(
+                         width = "50%",
+                         strong("Error"),
+                         tags$br(),
+                         tags$p("Form of error term", style = "font-size:10px"),
+                         align = "left"
                        ),
-                       tags$tr(
-                         tags$td(
-                           width = "50%",
-                           strong("Trend"),
-                           tags$br(),
-                           tags$p("Form of trend term", style = "font-size:10px"),
-                           align = "left"
-                         ),
-                         tags$td(
-                           selectInput(inputId = "tInput",
-                                       label = NULL,
-                                       choices = c("Additive" = "A",
-                                                   "Multiplicative" = "M",
-                                                   "None" = "N"),
-                                       selected = "N"),
-                           width = "50%"
-                         )
+                       tags$td(
+                         selectInput(inputId = "eInput",
+                                     label = NULL,
+                                     choices = c("Additive" = "A",
+                                                 "Multiplicative" = "M"),
+                                     selected = "Additive"),
+                         width = "50%"
+                       )
+                     ),
+                     tags$tr(
+                       tags$td(
+                         width = "50%",
+                         strong("Trend"),
+                         tags$br(),
+                         tags$p("Form of trend term", style = "font-size:10px"),
+                         align = "left"
                        ),
-                       tags$tr(
-                         tags$td(
-                           width = "50%",
-                           strong("Season"),
-                           tags$br(),
-                           tags$p("Form of season", style = "font-size:10px"),
-                           align = "left"
-                         ),
-                         tags$td(
-                           selectInput(inputId = "sInput",
-                                       label = NULL,
-                                       choices = c("Additive" = "A",
-                                                   "Multiplicative" = "M",
-                                                   "None" = "N"),
-                                       selected = "N"),
-                           width = "50%"
-                         )
+                       tags$td(
+                         selectInput(inputId = "tInput",
+                                     label = NULL,
+                                     choices = c("Additive" = "A",
+                                                 "Multiplicative" = "M",
+                                                 "None" = "N"),
+                                     selected = "N"),
+                         width = "50%"
+                       )
+                     ),
+                     tags$tr(
+                       tags$td(
+                         width = "50%",
+                         strong("Season"),
+                         tags$br(),
+                         tags$p("Form of season", style = "font-size:10px"),
+                         align = "left"
+                       ),
+                       tags$td(
+                         selectInput(inputId = "sInput",
+                                     label = NULL,
+                                     choices = c("Additive" = "A",
+                                                 "Multiplicative" = "M",
+                                                 "None" = "N"),
+                                     selected = "N"),
+                         width = "50%"
                        )
                      )
                    )
@@ -602,122 +589,112 @@ fluidPage(
                ),
                
                # ETS parameter tuning 2 ----
-               conditionalPanel(
-                 condition = ("input.initEtsButton > 0"),
-                 strong("Trend parameters"),
-                 wellPanel(
-                   tabsetPanel(
-                     # Alpha ----
-                     tabPanel("Alpha",
-                              tags$table(
-                                width = "100%",
-                                tags$tr(
-                                  tags$td(
-                                    width = "50%",
-                                    strong("Alpha"),
-                                    tags$br(),
-                                    tags$p("Smoothing parameter for level", style = "font-size:10px"),
-                                    align = "left"
+               wellPanel(
+                 tabsetPanel(
+                   # Alpha ----
+                   tabPanel("Alpha",
+                            tags$table(
+                              width = "100%",
+                              tags$tr(
+                                tags$td(
+                                  width = "50%",
+                                  strong("Alpha"),
+                                  tags$br(),
+                                  tags$p("Smoothing parameter for level", style = "font-size:10px"),
+                                  align = "left"
+                                ),
+                                tags$td(
+                                  sliderInput(
+                                    "trendAlphaEts",
+                                    label = NULL,
+                                    min = 0.0, max = 1.0,
+                                    value = 0
                                   ),
-                                  tags$td(
-                                    sliderInput(
-                                      "trendAlphaEts",
-                                      label = NULL,
-                                      min = 0.0, max = 1.0,
-                                      value = 0
-                                    ),
-                                    width = "50%"
-                                  )
+                                  width = "50%"
                                 )
                               )
-                     ),
-                     # Beta ----
-                     tabPanel("Beta",
-                              conditionalPanel(
-                                condition = "input.tInput != 'N'",
-                                tags$table(
-                                  width = "100%",
-                                  tags$tr(
-                                    tags$td(
-                                      width = "50%",
-                                      strong("Beta"),
-                                      tags$br(),
-                                      tags$p("Smoothing parameter for slope", style = "font-size:10px"),
-                                      align = "left"
-                                    ),
-                                    tags$td(
-                                      sliderInput(
-                                        "trendBetaEts",
-                                        label = NULL,
-                                        min = 0.0, max = 1.0,
-                                        value = 0
-                                      ),
-                                      width = "50%"
-                                    )
-                                  )
+                            )
+                   ),
+                   # Beta ----
+                   tabPanel("Beta",
+                            tags$table(
+                              width = "100%",
+                              tags$tr(
+                                tags$td(
+                                  width = "50%",
+                                  strong("Beta"),
+                                  tags$br(),
+                                  tags$p("Smoothing parameter for slope", style = "font-size:10px"),
+                                  align = "left"
+                                ),
+                                tags$td(
+                                  sliderInput(
+                                    "trendBetaEts",
+                                    label = NULL,
+                                    min = 0.0, max = 1.0,
+                                    value = 0
+                                  ),
+                                  width = "50%"
                                 )
                               )
-                     ),
-                     # Gamma ----
-                     tabPanel("Gamma",
-                              conditionalPanel(
-                                condition = "input.sInput != 'N'",
-                                tags$table(
-                                  width = "100%",
-                                  tags$tr(
-                                    tags$td(
-                                      width = "50%",
-                                      strong("Gamma"),
-                                      tags$br(),
-                                      tags$p("Smoothing parameter for season", style = "font-size:10px"),
-                                      align = "left"
-                                    ),
-                                    tags$td(
-                                      sliderInput(
-                                        "seasonGammaEts",
-                                        label = NULL,
-                                        min = 0.0, max = 1.0,
-                                        value = 0
-                                      ),
-                                      width = "50%"
-                                    )
-                                  )
+                            )
+                   ),
+                   # Gamma ----
+                   tabPanel("Gamma",
+                            tags$table(
+                              width = "100%",
+                              tags$tr(
+                                tags$td(
+                                  width = "50%",
+                                  strong("Gamma"),
+                                  tags$br(),
+                                  tags$p("Smoothing parameter for season", style = "font-size:10px"),
+                                  align = "left"
+                                ),
+                                tags$td(
+                                  sliderInput(
+                                    "seasonGammaEts",
+                                    label = NULL,
+                                    min = 0.0, max = 1.0,
+                                    value = 0
+                                  ),
+                                  width = "50%"
                                 )
                               )
-                     )
+                            )
                    )
+                 ),
+                 fluidRow(
+                   div(actionButton("etsTuneButton", "Begin"), style = "float:right")
                  )
                ),
                
                # Model Forecast panel----
-               conditionalPanel(
-                 condition = ("input.initEtsButton > 0"),
-                 strong("Forecast"),
-                 wellPanel(
-                   fluidRow(
-                     tags$table(
-                       width = "100%",
-                       tags$tr(
-                         tags$td(
-                           width = "50%",
-                           strong("n ahead"),
-                           tags$br(),
-                           tags$p("Periods to forecast", style = "font-size:10px"),
-                           align = "left"
-                         ),
-                         tags$td(
-                           numericInput(inputId = "nEtsInput",
-                                        label = NULL,
-                                        value = 13,
-                                        min = 1,
-                                        max = 208,
-                                        step = 1),
-                           width = "50%"
-                         )
+               strong("Forecast"),
+               wellPanel(
+                 fluidRow(
+                   tags$table(
+                     width = "100%",
+                     tags$tr(
+                       tags$td(
+                         width = "50%",
+                         strong("n ahead"),
+                         tags$br(),
+                         tags$p("Periods to forecast", style = "font-size:10px"),
+                         align = "left"
+                       ),
+                       tags$td(
+                         numericInput(inputId = "nEtsInput",
+                                      label = NULL,
+                                      value = 13,
+                                      min = 1,
+                                      max = 208,
+                                      step = 1),
+                         width = "50%"
                        )
-                     ),
-                     div(actionButton("forecastEtsButton", "Go"), style = "float:right")
-                   )
+                     )
+                   ),
+                   div(actionButton("forecastEtsButton", "Go"), style = "float:right")
                  )
                )
              ),
@@ -726,31 +703,28 @@ fluidPage(
              # ETS Diagnostics column ----
              column(
                4,
-               conditionalPanel(
-                 condition = ("input.initEtsButton > 0"),
-                 tabsetPanel(
-                   tabPanel(
-                     "Actual vs Fit",
-                     fluidRow(
-                       uiOutput("ets_avp_plot")
-                     )
-                   ),
-                   tabPanel(
-                     "Components",
-                     fluidRow(
-                       uiOutput("ets_component_plot")
-                     )
-                   ),
-                   tabPanel(
-                     "Report",
-                     fluidRow(
-                       uiOutput("ets_mdl_report")
-                     )
+               tabsetPanel(
+                 tabPanel(
+                   "Actual vs Fit",
+                   fluidRow(
+                     plotOutput("ets_avp")
                    )
                  ),
-                 fluidRow(
-                   uiOutput("ets_metric_table")
+                 tabPanel(
+                   "Components",
+                   fluidRow(
+                     plotOutput("ets_component")
+                   )
+                 ),
+                 tabPanel(
+                   "Report",
+                   fluidRow(
+                     htmlOutput("ets_report")
+                   )
                  )
+               ),
+               fluidRow(
+                 tableOutput("ets_met")
                )
              ),
              # End column ----
@@ -758,21 +732,18 @@ fluidPage(
              # ETS Forecast column ----
              column(
                5,
-               conditionalPanel(
-                 condition = ("input.forecastEtsButton > 0"),
-                 tabsetPanel(
-                   tabPanel(
-                     "Forecast",
-                     fluidRow(
-                       uiOutput("ets_forecast_plot")
-                     )
-                   ),
-                   tabPanel(
-                     "Data table",
-                     fluidRow(
-                       style = "padding:5%;",
-                       uiOutput("ets_results_table")
-                     )
+               tabsetPanel(
+                 tabPanel(
+                   "Forecast",
+                   fluidRow(
+                     plotOutput("ets_forecast")
+                   )
+                 ),
+                 tabPanel(
+                   "Data table",
+                   fluidRow(
+                     style = "padding:5%;",
+                     dataTableOutput("ets_results")
                    )
                  )
                )
@@ -780,6 +751,8 @@ fluidPage(
              # End column ----
     ),
     # End Module ----
+    
+  "Multi-Variate Time Series",
     
   # VAR Module ----
   tabPanel("VAR",
@@ -804,22 +777,19 @@ fluidPage(
                        value = c(as.Date(start_date), as.Date(end_date)),
                        timeFormat = "%Y-%m-%d",
                        width = "90%"
-                     ),
-                     div(actionButton("initVarButton", "Begin"), style = "float:right")
+                     )
                    )
                  ),
                  # VAR choose variables ----
-                 conditionalPanel(
-                   condition = ("input.initVarButton > 0"),
-                   strong("Parameter Tuning"),
-                   wellPanel(
-                     fluidRow(
-                       checkboxGroupInput("checkBoxVar", "Choose variables:",
-                                          choiceNames = varList,
-                                          choiceValues = varList,
-                                          inline = FALSE
-                       )
-                     )
+                 strong("Parameter Tuning"),
+                 wellPanel(
+                   fluidRow(
+                     checkboxGroupInput("checkBoxVar", "Choose variables:",
+                                        choiceNames = varList,
+                                        choiceValues = varList,
+                                        inline = FALSE
+                     ),
+                     div(actionButton("varTuneButton", "Begin"), style = "float:right")
                    )
                  )
                ),
@@ -1214,26 +1184,22 @@ fluidPage(
                # VAR Model Diagnostics column ----
                column(
                  6,
-                 conditionalPanel(
-                   condition = ("input.initVarButton > 0"),
-                   tabsetPanel(
-                     
-                     
-                     # VAR avp plot ----
-                     tabPanel(
-                       "Actual vs Fit",
-                       fluidRow(
-                         uiOutput("var_avp_plot")
-                       ),
-                       fluidRow(
-                         uiOutput("var_met_table")
-                       )
+                 tabsetPanel(   
+                   
+                   # VAR avp plot ----
+                   tabPanel(
+                     "Actual vs Fit",
+                     fluidRow(
+                       plotOutput("var_avp")
                      ),
-                     # VAR acf plot ----
-                     tabPanel(
-                       "ACF",
-                       uiOutput("var_acf_plot")
+                     fluidRow(
+                       tableOutput("var_met")
                      )
+                   ),
+                   # VAR acf plot ----
+                   tabPanel(
+                     "ACF",
+                     plotOutput("var_acf", height = 800)
                    )
                  )
                ),
@@ -1284,7 +1250,7 @@ fluidPage(
                  condition = "input.forecastVarButton > 0",
                  fluidRow(
                    (div(style='overflow-x: scroll;',
-                        uiOutput("var_forecast_plot")))
+                        uiOutput("var_forecast")))
                  )
                )
              )
