@@ -1,0 +1,212 @@
+---
+title: "EDA"
+---
+
+### 1 Installing and launching the required R packages
+
+```{r}
+pacman::p_load(tidyverse, ggiraph, ggstatsplot, patchwork, ggthemes, sf, terra, gstat, automap, tmap, viridis, zoo)
+```
+
+### 2 Importing the data
+
+```{r}
+climate_data <- read_csv("data/clean_climate_data.csv")
+```
+
+### 3 Oneway ANOVA Test
+
+```{r}
+#Inputs for prototyping
+input_station <- "Changi"
+input_msmt <- "mean_temp"
+start_year <- 2018
+end_year <- 2020
+input_year <- seq(start_year, end_year)
+
+input_data <- climate_data %>%
+  select('Station','Year','Month','Day',input_msmt)%>%
+  filter(Station == input_station,
+         Year %in% input_year)
+
+ggbetweenstats(
+  data = input_data,
+  x = Year, 
+  y = !!rlang::sym(input_msmt),
+  type = "p",
+  mean.ci = TRUE, 
+  pairwise.comparisons = TRUE, 
+  pairwise.display = "s",
+  p.adjust.method = "fdr",
+  messages = FALSE
+)
+```
+
+**The UI**
+
+![](images/clipboard-78424900.png)
+
+### 4 Spatial Interpolation
+
+```{r}
+#Importing the station data
+stations <- read_csv("data/aspatial/RainfallStation.csv")
+
+#Inputs for prototyping
+input_year <- 2023
+input_msmt <- "daily_rainfall"
+input_agg <- "sum"
+
+#Preparing the input data
+input_data <- climate_data %>%
+  select('Station','Year','Month','Day',input_msmt)%>%
+  filter(Year == input_year)
+
+rfdata <- input_data%>%
+  select(c(1,5))%>%
+  group_by(Station)%>%
+  summarise(year_agg = switch(input_agg,
+                              sum = sum(!!rlang::sym(input_msmt)),
+                              mean = mean(!!rlang::sym(input_msmt))
+                              ))%>%
+  mutate(
+    year_agg = ifelse(is.na(year_agg), 0, year_agg)
+  )%>%
+  ungroup()
+
+#Converting aspatial data into geospatial data
+rfdata <- rfdata %>%
+  left_join(stations)
+
+rfdata_sf<- st_as_sf(rfdata,
+                     coords = c("Longitude", "Latitude"),
+                     crs = 4326)%>%
+  st_transform(crs = 3414)
+
+#Importing planning subzone boundary data
+mpsz2019 <- st_read(dsn = "data/geospatial", layer = "MPSZ-2019")%>%
+  st_transform(crs = 3414)
+```
+
+**Inverse Distance Weighted**
+
+```{r}
+#Inputs for prototyping
+input_nmax <- 3
+
+
+grid <- terra::rast(mpsz2019, 
+                    nrows = 690, 
+                    ncols = 1075)
+
+xy <- terra::xyFromCell(grid, 
+                        1:ncell(grid))
+
+coop <- st_as_sf(as.data.frame(xy), 
+                 coords = c("x", "y"),
+                 crs = st_crs(mpsz2019))
+coop <- st_filter(coop, mpsz2019)
+
+res <- gstat(formula = year_agg ~ 1, 
+             locations = rfdata_sf, 
+             nmax = input_nmax,
+             set = list(idp = 0))
+
+resp <- predict(res, coop)
+
+resp$x <- st_coordinates(resp)[,1]
+resp$y <- st_coordinates(resp)[,2]
+resp$pred <- resp$var1.pred
+
+pred <- terra::rasterize(resp, grid, 
+                         field = "pred", 
+                         fun = "mean")
+
+tmap_options(check.and.fix = TRUE)
+tmap_mode("plot")
+tm_shape(pred) + 
+  tm_raster(alpha = 0.6, 
+            palette = "viridis")
+```
+
+**Kriging**
+
+```{r}
+v <- variogram(year_agg ~ 1, 
+               data = rfdata_sf)
+plot(v)
+```
+
+```{r}
+#Inputs for prototyping
+input_model <- "Sph"
+input_psill <- 0.5
+input_range <- 5000
+input_nugget <- 0.1
+
+fv <- fit.variogram(object = v,
+                    model = vgm(
+                      psill = input_psill, 
+                      model = input_model,
+                      range = input_range,  
+                      nugget = input_nugget))
+
+k <- gstat(formula = year_agg ~ 1, 
+           data = rfdata_sf, 
+           model = fv)
+
+resp <- predict(k, coop)
+resp$x <- st_coordinates(resp)[,1]
+resp$y <- st_coordinates(resp)[,2]
+resp$pred <- resp$var1.pred
+resp$pred <- resp$pred
+
+kpred <- terra::rasterize(resp, grid, 
+                         field = "pred")
+
+tmap_options(check.and.fix = TRUE)
+tmap_mode("plot")
+tm_shape(kpred) + 
+  tm_raster(alpha = 0.6, 
+            palette = "viridis",
+            title = "Total yearly rainfall (mm)") +
+  tm_layout(main.title = "Distribution of yearly rainfall",
+            main.title.position = "center",
+            main.title.size = 1.2,
+            legend.height = 0.45, 
+            legend.width = 0.35,
+            frame = TRUE) +
+  tm_compass(type="8star", size = 2) +
+  tm_scale_bar() +
+  tm_grid(alpha =0.2)
+```
+
+**The UI**
+
+The user select all required values from the first panel and click on the button. If IDW is selected, the user can change the model parameter nmax value to generate different surface map. If Kriging is selected, a empirical variogram will be shown, and the user can decide the model parameters - psill, model, range, nugget according to the variogram shown.
+
+![](images/clipboard-2288915181.png)
+
+![](images/clipboard-678801434.png)
+
+### 5 Correlation
+
+```{r}
+#Inputs for prototyping
+input1 <- "mean_temp"
+input2 <- "daily_rainfall"
+input3 <- "mean_wind"
+
+cor_data <- climate_data %>%
+  select(input1, input2, input3)
+
+cor_data <- na.omit(cor_data)
+
+ggstatsplot::ggcorrmat(
+  data = cor_data, 
+  cor.vars = 1:ncol(cor_data))
+```
+
+**The UI**
+
+![](images/clipboard-1923609671.png)

@@ -98,7 +98,8 @@ fluidPage(
                      choiceNames = list("None", "Forward", "Backward"),
                      choiceValues = list("None", "Forward", "Backward"),
                      inline = TRUE
-                   )
+                   ),
+                   div(actionButton("lmTuneButton", "Tune"), style = "float:right")
                  )
                )
              ),
@@ -287,19 +288,19 @@ fluidPage(
                    tabPanel(
                      "Observed vs Fitted",
                      fluidRow(
-                       uiOutput("lm_avp_plot")
+                       plotOutput("lm_avp")
                      ),
                      fluidRow(
-                       uiOutput("lm_metric_table_1")
+                       tableOutput("lm_met_1")
                      ),
                      fluidRow(
-                       uiOutput("lm_metric_table_2")
+                       tableOutput("lm_met_2")
                      )
                    ),
                    tabPanel(
                      "Coefficients",
                      fluidRow(
-                       uiOutput("lm_coeff_plot")
+                       plotOutput("lm_coeff", height = 600)
                      )
                    ),
                    tabPanel(
@@ -316,7 +317,7 @@ fluidPage(
                                    selected = "Posterior Predictive")
                      ),
                      fluidRow(
-                       uiOutput("lm_diagnostic_plot")
+                       plotOutput("lm_diagnostic", height = 600)
                      )
                    ),
                    tabPanel(
@@ -331,7 +332,503 @@ fluidPage(
     ),
     # End Module ----
     
-    # New Section
+    # Tslm module ----
+    tabPanel("Time Series Linear Regression",
+             
+             # Tslm initialization columns ----
+             column(
+               3,
+               
+               # Tslm choose dates ----
+               strong("Choose Dates"),
+               wellPanel(
+                 fluidRow(
+                   sliderInput(
+                     "periodRangeTslm",
+                     "Select Period:",
+                     min = as.Date(start_date), max = as.Date(end_date),
+                     value = c(as.Date(start_date), as.Date(end_date)),
+                     timeFormat = "%Y-%m-%d",
+                     width = "90%"
+                   )
+                 )
+               ),
+               # Tslm choose variables ----
+               strong("Parameter Tuning"),
+               wellPanel(
+                 fluidRow(
+                   checkboxGroupInput("checkBoxTslm", "Choose variables:",
+                                      choiceNames = varList,
+                                      choiceValues = varList,
+                                      inline = FALSE
+                   )
+                 ),
+                 fluidRow(
+                  div(actionButton("tslmTuneButton", "Tune"), style = "float:right")
+                 )
+               )
+             ),
+             # End column ----
+             
+             # Tslm added variable column ----
+             column(
+               3,
+               
+               # Cases ----
+               wellPanel(
+                 fluidRow(
+                   radioButtons(
+                     "tslmRadioCasesInput",
+                     "Choose transformation:",
+                     choiceNames = list("None", "Log", "MinMax", "Z"),
+                     choiceValues = list("None", "Log", "MinMax", "Z"),
+                     inline = TRUE
+                   ),
+                   tags$table(
+                     width = "100%",
+                     tags$tr(
+                       tags$td(
+                         width = "50%",
+                         strong("Differencing"),
+                         tags$br(),
+                         tags$p("Number of differencing:", style = "font-size:10px"),
+                         align = "left"
+                       ),
+                       tags$td(
+                         numericInput(inputId = "tslmDiffCasesInput",
+                                      label = NULL,
+                                      value = 0,
+                                      min = 0,
+                                      max = 3,
+                                      step = 1),
+                         width = "50%"
+                       )
+                     )
+                   )
+                 )
+               ),
+               # AvgRainfall ----
+               conditionalPanel(
+                 condition = ("input.checkBoxTslm.includes('avg_rainfall')"),
+                 strong("Average Rainfall"),
+                 wellPanel(
+                   fluidRow(
+                     radioButtons(
+                       "tslmRadioAvgRainfallInput",
+                       "Choose transformation:",
+                       choiceNames = list("None", "Log", "MinMax", "Z"),
+                       choiceValues = list("None", "Log", "MinMax", "Z"),
+                       inline = TRUE
+                     ),
+                     tags$table(
+                       width = "100%",
+                       tags$tr(
+                         tags$td(
+                           width = "50%",
+                           strong("Differencing"),
+                           tags$br(),
+                           tags$p("Number of differencing:", style = "font-size:10px"),
+                           align = "left"
+                         ),
+                         tags$td(
+                           numericInput(inputId = "tslmDiffAvgRainfallInput",
+                                        label = NULL,
+                                        value = 0,
+                                        min = 0,
+                                        max = 3,
+                                        step = 1),
+                           width = "50%"
+                         )
+                       )
+                     )
+                   )
+                 )
+               ),
+               
+               # Tot Rainfall ----
+               conditionalPanel(
+                 condition = ("input.checkBoxTslm.includes('tot_rainfall')"),
+                 strong("Total Rainfall"),
+                 wellPanel(
+                   fluidRow(
+                     radioButtons(
+                       "tslmRadioTotRainfallInput",
+                       "Choose transformation:",
+                       choiceNames = list("None", "Log", "MinMax", "Z"),
+                       choiceValues = list("None", "Log", "MinMax", "Z"),
+                       inline = TRUE
+                     ),
+                     tags$table(
+                       width = "100%",
+                       tags$tr(
+                         tags$td(
+                           width = "50%",
+                           strong("Differencing"),
+                           tags$br(),
+                           tags$p("Number of differencing:", style = "font-size:10px"),
+                           align = "left"
+                         ),
+                         tags$td(
+                           numericInput(inputId = "tslmDiffTotRainfallInput",
+                                        label = NULL,
+                                        value = 0,
+                                        min = 0,
+                                        max = 3,
+                                        step = 1),
+                           width = "50%"
+                         )
+                       )
+                     )
+                   )
+                 )
+               ),
+               
+               # Max 30m Rainfall ----
+               conditionalPanel(
+                 condition = ("input.checkBoxTslm.includes('max_30m_rainfall')"),
+                 strong("Max 30m Rainfall"),
+                 wellPanel(
+                   fluidRow(
+                     radioButtons(
+                       "tslmRadioMax30mRainfallInput",
+                       "Choose transformation:",
+                       choiceNames = list("None", "Log", "MinMax", "Z"),
+                       choiceValues = list("None", "Log", "MinMax", "Z"),
+                       inline = TRUE
+                     ),
+                     tags$table(
+                       width = "100%",
+                       tags$tr(
+                         tags$td(
+                           width = "50%",
+                           strong("Differencing"),
+                           tags$br(),
+                           tags$p("Number of differencing:", style = "font-size:10px"),
+                           align = "left"
+                         ),
+                         tags$td(
+                           numericInput(inputId = "tslmDiffMax30mInput",
+                                        label = NULL,
+                                        value = 0,
+                                        min = 0,
+                                        max = 3,
+                                        step = 1),
+                           width = "50%"
+                         )
+                       )
+                     )
+                   )
+                 )
+               ),
+               
+               # Max 60m Rainfall ----
+               conditionalPanel(
+                 condition = ("input.checkBoxTslm.includes('max_60m_rainfall')"),
+                 strong("Max 60m Rainfall"),
+                 wellPanel(
+                   fluidRow(
+                     radioButtons(
+                       "tslmRadioMax60mRainfallInput",
+                       "Choose transformation:",
+                       choiceNames = list("None", "Log", "MinMax", "Z"),
+                       choiceValues = list("None", "Log", "MinMax", "Z"),
+                       inline = TRUE
+                     ),
+                     tags$table(
+                       width = "100%",
+                       tags$tr(
+                         tags$td(
+                           width = "50%",
+                           strong("Differencing"),
+                           tags$br(),
+                           tags$p("Number of differencing:", style = "font-size:10px"),
+                           align = "left"
+                         ),
+                         tags$td(
+                           numericInput(inputId = "tslmDiffMax60mInput",
+                                        label = NULL,
+                                        value = 0,
+                                        min = 0,
+                                        max = 3,
+                                        step = 1),
+                           width = "50%"
+                         )
+                       )
+                     )
+                   )
+                 )
+               ),
+               
+               # Max 120m Rainfall ----
+               conditionalPanel(
+                 condition = ("input.checkBoxTslm.includes('max_120m_rainfall')"),
+                 strong("Max 120m Rainfall"),
+                 wellPanel(
+                   fluidRow(
+                     radioButtons(
+                       "tslmRadioMax120mRainfallInput",
+                       "Choose transformation:",
+                       choiceNames = list("None", "Log", "MinMax", "Z"),
+                       choiceValues = list("None", "Log", "MinMax", "Z"),
+                       inline = TRUE
+                     ),
+                     tags$table(
+                       width = "100%",
+                       tags$tr(
+                         tags$td(
+                           width = "50%",
+                           strong("Differencing"),
+                           tags$br(),
+                           tags$p("Number of differencing:", style = "font-size:10px"),
+                           align = "left"
+                         ),
+                         tags$td(
+                           numericInput(inputId = "tslmDiffMax120mInput",
+                                        label = NULL,
+                                        value = 0,
+                                        min = 0,
+                                        max = 3,
+                                        step = 1),
+                           width = "50%"
+                         )
+                       )
+                     )
+                   )
+                 )
+               ),
+               
+               # Avg Temp ----
+               conditionalPanel(
+                 condition = ("input.checkBoxTslm.includes('avg_temp')"),
+                 strong("Average Temperature"),
+                 wellPanel(
+                   fluidRow(
+                     radioButtons(
+                       "tslmRadioAvgTempInput",
+                       "Choose transformation:",
+                       choiceNames = list("None", "Log", "MinMax", "Z"),
+                       choiceValues = list("None", "Log", "MinMax", "Z"),
+                       inline = TRUE
+                     ),
+                     tags$table(
+                       width = "100%",
+                       tags$tr(
+                         tags$td(
+                           width = "50%",
+                           strong("Differencing"),
+                           tags$br(),
+                           tags$p("Number of differencing:", style = "font-size:10px"),
+                           align = "left"
+                         ),
+                         tags$td(
+                           numericInput(inputId = "tslmDiffAvgTempInput",
+                                        label = NULL,
+                                        value = 0,
+                                        min = 0,
+                                        max = 3,
+                                        step = 1),
+                           width = "50%"
+                         )
+                       )
+                     )
+                   )
+                 )
+               ),
+               
+               # Max Temp ----
+               conditionalPanel(
+                 condition = ("input.checkBoxTslm.includes('max_temp')"),
+                 strong("Max Temperature"),
+                 wellPanel(
+                   fluidRow(
+                     radioButtons(
+                       "tslmRadioMaxTempInput",
+                       "Choose transformation:",
+                       choiceNames = list("None", "Log", "MinMax", "Z"),
+                       choiceValues = list("None", "Log", "MinMax", "Z"),
+                       inline = TRUE
+                     ),
+                     tags$table(
+                       width = "100%",
+                       tags$tr(
+                         tags$td(
+                           width = "50%",
+                           strong("Differencing"),
+                           tags$br(),
+                           tags$p("Number of differencing:", style = "font-size:10px"),
+                           align = "left"
+                         ),
+                         tags$td(
+                           numericInput(inputId = "tslmDiffMaxTempInput",
+                                        label = NULL,
+                                        value = 0,
+                                        min = 0,
+                                        max = 3,
+                                        step = 1),
+                           width = "50%"
+                         )
+                       )
+                     )
+                   )
+                 )
+               ),
+               
+               # Min Temp ----
+               conditionalPanel(
+                 condition = ("input.checkBoxTslm.includes('min_temp')"),
+                 strong("Min Temperature"),
+                 wellPanel(
+                   fluidRow(
+                     radioButtons(
+                       "tslmRadioMinTempInput",
+                       "Choose transformation:",
+                       choiceNames = list("None", "Log", "MinMax", "Z"),
+                       choiceValues = list("None", "Log", "MinMax", "Z"),
+                       inline = TRUE
+                     ),
+                     tags$table(
+                       width = "100%",
+                       tags$tr(
+                         tags$td(
+                           width = "50%",
+                           strong("Differencing"),
+                           tags$br(),
+                           tags$p("Number of differencing:", style = "font-size:10px"),
+                           align = "left"
+                         ),
+                         tags$td(
+                           numericInput(inputId = "tslmDiffMinTempInput",
+                                        label = NULL,
+                                        value = 0,
+                                        min = 0,
+                                        max = 3,
+                                        step = 1),
+                           width = "50%"
+                         )
+                       )
+                     )
+                   )
+                 )
+               ),
+               
+               # Avg Wind ----
+               conditionalPanel(
+                 condition = ("input.checkBoxTslm.includes('avg_wind')"),
+                 strong("Average Wind Speed"),
+                 wellPanel(
+                   fluidRow(
+                     radioButtons(
+                       "tslmRadioAvgWindInput",
+                       "Choose transformation:",
+                       choiceNames = list("None", "Log", "MinMax", "Z"),
+                       choiceValues = list("None", "Log", "MinMax", "Z"),
+                       inline = TRUE
+                     ),
+                     tags$table(
+                       width = "100%",
+                       tags$tr(
+                         tags$td(
+                           width = "50%",
+                           strong("Differencing"),
+                           tags$br(),
+                           tags$p("Number of differencing:", style = "font-size:10px"),
+                           align = "left"
+                         ),
+                         tags$td(
+                           numericInput(inputId = "tslmDiffAvgWindInput",
+                                        label = NULL,
+                                        value = 0,
+                                        min = 0,
+                                        max = 3,
+                                        step = 1),
+                           width = "50%"
+                         )
+                       )
+                     )
+                   )
+                 )
+               ),
+               
+               # Max Wind ----
+               conditionalPanel(
+                 condition = ("input.checkBoxTslm.includes('max_wind')"),
+                 strong("Max Wind Speed"),
+                 wellPanel(
+                   fluidRow(
+                     radioButtons(
+                       "tslmRadioMaxWindInput",
+                       "Choose transformation:",
+                       choiceNames = list("None", "Log", "MinMax", "Z"),
+                       choiceValues = list("None", "Log", "MinMax", "Z"),
+                       inline = TRUE
+                     ),
+                     tags$table(
+                       width = "100%",
+                       tags$tr(
+                         tags$td(
+                           width = "50%",
+                           strong("Differencing"),
+                           tags$br(),
+                           tags$p("Number of differencing:", style = "font-size:10px"),
+                           align = "left"
+                         ),
+                         tags$td(
+                           numericInput(inputId = "tslmDiffMaxWindInput",
+                                        label = NULL,
+                                        value = 0,
+                                        min = 0,
+                                        max = 3,
+                                        step = 1),
+                           width = "50%"
+                         )
+                       )
+                     )
+                   )
+                 )
+               ),
+             ),
+             # End column ----
+             
+             # Tslm Diagnostics column ----
+             column(
+               6,
+               tabsetPanel(   
+                 
+                 # Tslm avp plot ----
+                 tabPanel(
+                   "Actual vs Fit",
+                   fluidRow(
+                     plotOutput("tslm_avp")
+                   ),
+                   fluidRow(
+                     tableOutput("tslm_met")
+                   )
+                 ),
+                 # Tslm rdl plot ----
+                 tabPanel(
+                   "Residuals",
+                   fluidRow(
+                     plotOutput("tslm_rdl")
+                   )
+                 ),
+                 # Tslm coeff plot ----
+                 tabPanel(
+                   "Coefficients",
+                   fluidRow(
+                     plotOutput("tslm_coeff")
+                   ),
+                   fluidRow(
+                     tableOutput("tslm_coeff_error")
+                   )
+                 )
+               )
+             ),
+             
+             
+    ),
+    # End Module ----
+             
+    # New Section ----
     "Univariate Time Series",
     
     # ARIMA Module ----
@@ -494,7 +991,7 @@ fluidPage(
                    "Data table",
                    fluidRow(
                      style = "padding:5%;",
-                     tableOutput("arima_results")
+                     dataTableOutput("arima_results")
                    )
                  )
                )
@@ -665,7 +1162,7 @@ fluidPage(
                    )
                  ),
                  fluidRow(
-                   div(actionButton("etsTuneButton", "Begin"), style = "float:right")
+                   div(actionButton("etsTuneButton", "Tune"), style = "float:right")
                  )
                ),
                
@@ -789,7 +1286,7 @@ fluidPage(
                                         choiceValues = varList,
                                         inline = FALSE
                      ),
-                     div(actionButton("varTuneButton", "Begin"), style = "float:right")
+                     div(actionButton("varTuneButton", "Tune"), style = "float:right")
                    )
                  )
                ),
@@ -798,6 +1295,40 @@ fluidPage(
                # VAR Added Variable column ----
                column(
                  3,
+                 
+                 # Cases Panel ----
+                 wellPanel(
+                   fluidRow(
+                     radioButtons(
+                       "radioCasesInput",
+                       "Choose transformation:",
+                       choiceNames = list("None", "Log", "MinMax", "Z"),
+                       choiceValues = list("None", "Log", "MinMax", "Z"),
+                       inline = TRUE
+                     ),
+                     tags$table(
+                       width = "100%",
+                       tags$tr(
+                         tags$td(
+                           width = "50%",
+                           strong("Differencing"),
+                           tags$br(),
+                           tags$p("Number of differencing:", style = "font-size:10px"),
+                           align = "left"
+                         ),
+                         tags$td(
+                           numericInput(inputId = "diffCasesInput",
+                                        label = NULL,
+                                        value = 0,
+                                        min = 0,
+                                        max = 3,
+                                        step = 1),
+                           width = "50%"
+                         )
+                       )
+                     )
+                   )
+                 ),
                  
                  # Avg Rainfall ----
                  conditionalPanel(
@@ -1199,7 +1730,8 @@ fluidPage(
                    # VAR acf plot ----
                    tabPanel(
                      "ACF",
-                     plotOutput("var_acf", height = 800)
+                     (div(style='height:550px; overflow-y: scroll;',
+                          uiOutput("var_acf_plot")))
                    )
                  )
                ),
@@ -1248,9 +1780,31 @@ fluidPage(
                # VAR forecast plot ----
                conditionalPanel(
                  condition = "input.forecastVarButton > 0",
-                 fluidRow(
-                   (div(style='overflow-x: scroll;',
-                        uiOutput("var_forecast")))
+                 column(
+                   6,
+                   fluidRow(
+                      plotOutput("var_forecast", height = 600)
+                   )
+                 ),
+                 column(
+                   6,
+                   tabsetPanel(
+                     tabPanel(
+                       "Other Regressors",
+                       (div(style='height:550px; overflow-y: scroll;',
+                            uiOutput("var_other_plot")))
+                     ),
+                     tabPanel(
+                       "Data Table",
+                       (div(style='height:550px; overflow-y: scroll;',
+                            dataTableOutput("var_results")))
+                     ),
+                     tabPanel(
+                       "Report",
+                       (div(style='height:550px; overflow-y: scroll;',
+                            tableOutput("var_report")))
+                     )
+                   )
                  )
                )
              )

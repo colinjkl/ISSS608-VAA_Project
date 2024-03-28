@@ -5,9 +5,9 @@ account: prototype-isss608vaa
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 11531514
-bundleId: 8409423
+bundleId: 8411732
 url: https://prototype-isss608vaa.shinyapps.io/ProjectShinyApp/
 version: 1
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: data/time_series_data.csv
+ignoredFiles: data/dengue_climate_joined_by_week_transformed.csv|data/time_series_data.csv
