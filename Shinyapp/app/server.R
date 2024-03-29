@@ -19,8 +19,22 @@ pacman::p_load(
   MLmetrics,
   performance,
   caret,
-  ggstatsplot
+  ggstatsplot,
+  ggiraph, 
+  ggthemes, 
+  sf, 
+  terra, 
+  gstat, 
+  automap, 
+  tmap, 
+  viridis, 
+  zoo,
+  rstantools
 )
+
+stations <- read_csv("data/RainfallStation.csv")
+
+climate_data <- read_csv("data/clean_climate_data.csv")
 
 df <- read_csv("data/dengue_climate_joined_by_week_transformed_diff.csv")
 
@@ -65,6 +79,587 @@ function(input, output, session) {
       plotOutput('var_other', height = 200*(length(input$checkBoxVar)+1))
     })
   })
+  
+  # anova plot 1 ----
+  output$anova_1 <- renderPlot({
+    
+    if (input$anovaTuneButton == 0) return()
+    
+    isolate({
+      
+      #Inputs
+      input_station <- input$stationsAnova1
+      input_msmt <- input$variableAnova
+      start_year <- input$periodRangeAnova[1]
+      end_year <- input$periodRangeAnova[2]
+      input_year <- seq(start_year, end_year)
+      
+      input_data <- climate_data %>%
+        select('Station','Year','Month','Day',input_msmt)%>%
+        filter(Station == input_station,
+               Year %in% input_year)
+      
+      ggbetweenstats(
+        data = input_data,
+        x = Year, 
+        y = !!rlang::sym(input_msmt),
+        type = "p",
+        mean.ci = TRUE, 
+        pairwise.comparisons = TRUE, 
+        pairwise.display = "s",
+        p.adjust.method = "fdr",
+        messages = FALSE,
+        centrality.label.args = list(size  = 5),
+        ggplot.component = list(theme(text = element_text(size = 14),
+                                      plot.title = element_text(size = 24))),
+        title = paste0("Comparison of ",input_msmt," between years (", start_year, "-", end_year,")")
+      )
+      
+    })
+    
+  })
+  
+  # anova plot 2 ----
+  output$anova_2 <- renderPlot({
+    
+    if (input$anovaTuneButton == 0) return()
+    
+    isolate({
+      
+      #Inputs
+      input_station <- input$stationsAnova2
+      input_msmt <- input$variableAnova
+      start_year <- input$periodRangeAnova[1]
+      end_year <- input$periodRangeAnova[2]
+      input_year <- seq(start_year, end_year)
+      
+      input_data <- climate_data %>%
+        select('Station','Year','Month','Day',input_msmt)%>%
+        filter(Station == input_station,
+               Year %in% input_year)
+      
+      ggbetweenstats(
+        data = input_data,
+        x = Year, 
+        y = !!rlang::sym(input_msmt),
+        type = "p",
+        mean.ci = TRUE, 
+        pairwise.comparisons = TRUE, 
+        pairwise.display = "s",
+        p.adjust.method = "fdr",
+        messages = FALSE,
+        centrality.label.args = list(size  = 5),
+        ggplot.component = list(theme(text = element_text(size = 14),
+                                      plot.title = element_text(size = 24))),
+        title = paste0("Comparison of ",input_msmt," between years (", start_year, "-", end_year,")")
+      ) 
+      
+    })
+    
+  })
+  
+  # geo plot 1 ----
+  output$geo_1 <- renderPlot({
+    
+    if (input$geoTuneButton == 0) return()
+    
+    isolate({
+      
+      if (input$methodGeoIdw == "IDW") {
+      
+        #Inputs
+        input_year <- input$periodRangeGeo1
+        input_msmt <- input$variableGeoIdw
+        input_agg <- input$aggGeoIdw
+        input_nmax <- input$nmaxGeoIdw
+        
+        #Preparing the input data
+        input_data <- climate_data %>%
+          select('Station','Year','Month','Day',input_msmt)%>%
+          filter(Year == input_year)
+        
+        rfdata <- input_data%>%
+          select(c(1,5))%>%
+          group_by(Station)%>%
+          summarise(year_agg = switch(input_agg,
+                                      sum = sum(!!rlang::sym(input_msmt)),
+                                      mean = mean(!!rlang::sym(input_msmt))
+          ))%>%
+          mutate(
+            year_agg = ifelse(is.na(year_agg), 0, year_agg)
+          )%>%
+          ungroup()
+        
+        #Converting aspatial data into geospatial data
+        rfdata <- rfdata %>%
+          left_join(stations)
+        
+        rfdata_sf<- st_as_sf(rfdata,
+                             coords = c("Longitude", "Latitude"),
+                             crs = 4326)%>%
+          st_transform(crs = 3414)
+        
+        #Importing planning subzone boundary data
+        mpsz2019 <- st_read(dsn = "data/geospatial", layer = "MPSZ-2019")%>%
+          st_transform(crs = 3414)
+        
+        grid <- terra::rast(mpsz2019, 
+                            nrows = 690, 
+                            ncols = 1075)
+        
+        xy <- terra::xyFromCell(grid, 
+                                1:ncell(grid))
+        
+        coop <- st_as_sf(as.data.frame(xy), 
+                         coords = c("x", "y"),
+                         crs = st_crs(mpsz2019))
+        coop <- st_filter(coop, mpsz2019)
+        
+        res <- gstat(formula = year_agg ~ 1, 
+                     locations = rfdata_sf, 
+                     nmax = input_nmax,
+                     set = list(idp = 0))
+        
+        resp <- predict(res, coop)
+        
+        resp$x <- st_coordinates(resp)[,1]
+        resp$y <- st_coordinates(resp)[,2]
+        resp$pred <- resp$var1.pred
+        
+        pred <- terra::rasterize(resp, grid, 
+                                 field = "pred", 
+                                 fun = "mean")
+        
+        tmap_options(check.and.fix = TRUE)
+        tmap_mode("plot")
+        tm_shape(pred) + 
+          tm_raster(alpha = 0.6, 
+                    palette = "viridis",
+                    title = paste0(input_msmt)) +
+          tm_layout(main.title = paste0("Distribution of ",input_msmt," for Year ",input_year),
+                    main.title.position = "center",
+                    main.title.size = 1.2,
+                    legend.height = 0.45, 
+                    legend.width = 0.35,
+                    frame = TRUE) +
+          tm_compass(type="8star", size = 2) +
+          tm_scale_bar() +
+          tm_grid(alpha =0.2)
+      
+      } else {
+        
+        #Inputs for prototyping
+        input_year <- input$periodRangeGeo1
+        input_msmt <- input$variableGeoKrig
+        input_agg <- input$aggGeoKrig
+        input_model <- input$modelGeoKrig
+        input_psill <- input$psilGeoKrig
+        input_range <- input$rangeGeoKrig
+        input_nugget <- input$nuggetGeoKrig
+        
+         #Preparing the input data
+        input_data <- climate_data %>%
+          select('Station','Year','Month','Day',input_msmt)%>%
+          filter(Year == input_year)
+        
+        rfdata <- input_data%>%
+          select(c(1,5))%>%
+          group_by(Station)%>%
+          summarise(year_agg = switch(input_agg,
+                                      sum = sum(!!rlang::sym(input_msmt)),
+                                      mean = mean(!!rlang::sym(input_msmt))
+          ))%>%
+          mutate(
+            year_agg = ifelse(is.na(year_agg), 0, year_agg)
+          )%>%
+          ungroup()
+        
+        #Converting aspatial data into geospatial data
+        rfdata <- rfdata %>%
+          left_join(stations)
+        
+        rfdata_sf<- st_as_sf(rfdata,
+                             coords = c("Longitude", "Latitude"),
+                             crs = 4326)%>%
+          st_transform(crs = 3414)
+        
+        #Importing planning subzone boundary data
+        mpsz2019 <- st_read(dsn = "data/geospatial", layer = "MPSZ-2019")%>%
+          st_transform(crs = 3414)
+        
+        # fitting variogram model
+        v <- variogram(year_agg ~ 1, 
+                       data = rfdata_sf)
+        
+        fv <- fit.variogram(object = v,
+                            model = vgm(
+                              psill = input_psill, 
+                              model = input_model,
+                              range = input_range,  
+                              nugget = input_nugget))
+        
+        k <- gstat(formula = year_agg ~ 1, 
+                   data = rfdata_sf, 
+                   model = fv)
+        
+        grid <- terra::rast(mpsz2019, 
+                            nrows = 690, 
+                            ncols = 1075)
+        
+        xy <- terra::xyFromCell(grid, 
+                                1:ncell(grid))
+        
+        coop <- st_as_sf(as.data.frame(xy), 
+                         coords = c("x", "y"),
+                         crs = st_crs(mpsz2019))
+        coop <- st_filter(coop, mpsz2019)
+        
+        resp <- predict(k, coop)
+        resp$x <- st_coordinates(resp)[,1]
+        resp$y <- st_coordinates(resp)[,2]
+        resp$pred <- resp$var1.pred
+        resp$pred <- resp$pred
+        
+        kpred <- terra::rasterize(resp, grid, 
+                                  field = "pred")
+        
+        tmap_options(check.and.fix = TRUE)
+        tmap_mode("plot")
+        tm_shape(kpred) + 
+          tm_raster(alpha = 0.6, 
+                    palette = "viridis",
+                    title = paste0(input_msmt)) +
+          tm_layout(main.title = paste0("Distribution of ",input_msmt," for Year ",input_year),
+                    main.title.position = "center",
+                    main.title.size = 1.2,
+                    legend.height = 0.45, 
+                    legend.width = 0.35,
+                    frame = TRUE) +
+          tm_compass(type="8star", size = 2) +
+          tm_scale_bar() +
+          tm_grid(alpha =0.2)
+        
+      }
+      
+    })
+    
+  })
+  
+  # geo plot 2 ----
+  output$geo_2 <- renderPlot({
+    
+    if (input$geoTuneButton == 0) return()
+    
+    isolate({
+      
+      if (input$methodGeoIdw == "IDW") {
+        
+        #Inputs
+        input_year <- input$periodRangeGeo2
+        input_msmt <- input$variableGeoIdw
+        input_agg <- input$aggGeoIdw
+        input_nmax <- input$nmaxGeoIdw
+        
+        #Preparing the input data
+        input_data <- climate_data %>%
+          select('Station','Year','Month','Day',input_msmt)%>%
+          filter(Year == input_year)
+        
+        rfdata <- input_data%>%
+          select(c(1,5))%>%
+          group_by(Station)%>%
+          summarise(year_agg = switch(input_agg,
+                                      sum = sum(!!rlang::sym(input_msmt)),
+                                      mean = mean(!!rlang::sym(input_msmt))
+          ))%>%
+          mutate(
+            year_agg = ifelse(is.na(year_agg), 0, year_agg)
+          )%>%
+          ungroup()
+        
+        #Converting aspatial data into geospatial data
+        rfdata <- rfdata %>%
+          left_join(stations)
+        
+        rfdata_sf<- st_as_sf(rfdata,
+                             coords = c("Longitude", "Latitude"),
+                             crs = 4326)%>%
+          st_transform(crs = 3414)
+        
+        #Importing planning subzone boundary data
+        mpsz2019 <- st_read(dsn = "data/geospatial", layer = "MPSZ-2019")%>%
+          st_transform(crs = 3414)
+        
+        grid <- terra::rast(mpsz2019, 
+                            nrows = 690, 
+                            ncols = 1075)
+        
+        xy <- terra::xyFromCell(grid, 
+                                1:ncell(grid))
+        
+        coop <- st_as_sf(as.data.frame(xy), 
+                         coords = c("x", "y"),
+                         crs = st_crs(mpsz2019))
+        coop <- st_filter(coop, mpsz2019)
+        
+        res <- gstat(formula = year_agg ~ 1, 
+                     locations = rfdata_sf, 
+                     nmax = input_nmax,
+                     set = list(idp = 0))
+        
+        resp <- predict(res, coop)
+        
+        resp$x <- st_coordinates(resp)[,1]
+        resp$y <- st_coordinates(resp)[,2]
+        resp$pred <- resp$var1.pred
+        
+        pred <- terra::rasterize(resp, grid, 
+                                 field = "pred", 
+                                 fun = "mean")
+        
+        tmap_options(check.and.fix = TRUE)
+        tmap_mode("plot")
+        tm_shape(pred) + 
+          tm_raster(alpha = 0.6, 
+                    palette = "viridis",
+                    title = paste0(input_msmt)) +
+          tm_layout(main.title = paste0("Distribution of ",input_msmt," for Year ",input_year),
+                    main.title.position = "center",
+                    main.title.size = 1.2,
+                    legend.height = 0.45, 
+                    legend.width = 0.35,
+                    frame = TRUE) +
+          tm_compass(type="8star", size = 2) +
+          tm_scale_bar() +
+          tm_grid(alpha =0.2)
+        
+      } else {
+        
+        #Inputs for prototyping
+        input_year <- input$periodRangeGeo2
+        input_msmt <- input$variableGeoKrig
+        input_agg <- input$aggGeoKrig
+        input_model <- input$modelGeoKrig
+        input_psill <- input$psilGeoKrig
+        input_range <- input$rangeGeoKrig
+        input_nugget <- input$nuggetGeoKrig
+        
+        #Preparing the input data
+        input_data <- climate_data %>%
+          select('Station','Year','Month','Day',input_msmt)%>%
+          filter(Year == input_year)
+        
+        rfdata <- input_data%>%
+          select(c(1,5))%>%
+          group_by(Station)%>%
+          summarise(year_agg = switch(input_agg,
+                                      sum = sum(!!rlang::sym(input_msmt)),
+                                      mean = mean(!!rlang::sym(input_msmt))
+          ))%>%
+          mutate(
+            year_agg = ifelse(is.na(year_agg), 0, year_agg)
+          )%>%
+          ungroup()
+        
+        #Converting aspatial data into geospatial data
+        rfdata <- rfdata %>%
+          left_join(stations)
+        
+        rfdata_sf<- st_as_sf(rfdata,
+                             coords = c("Longitude", "Latitude"),
+                             crs = 4326)%>%
+          st_transform(crs = 3414)
+        
+        #Importing planning subzone boundary data
+        mpsz2019 <- st_read(dsn = "data/geospatial", layer = "MPSZ-2019")%>%
+          st_transform(crs = 3414)
+        
+        # fitting variogram model
+        v <- variogram(year_agg ~ 1, 
+                       data = rfdata_sf)
+        
+        fv <- fit.variogram(object = v,
+                            model = vgm(
+                              psill = input_psill, 
+                              model = input_model,
+                              range = input_range,  
+                              nugget = input_nugget))
+        
+        k <- gstat(formula = year_agg ~ 1, 
+                   data = rfdata_sf, 
+                   model = fv)
+        
+        grid <- terra::rast(mpsz2019, 
+                            nrows = 690, 
+                            ncols = 1075)
+        
+        xy <- terra::xyFromCell(grid, 
+                                1:ncell(grid))
+        
+        coop <- st_as_sf(as.data.frame(xy), 
+                         coords = c("x", "y"),
+                         crs = st_crs(mpsz2019))
+        coop <- st_filter(coop, mpsz2019)
+        
+        resp <- predict(k, coop)
+        resp$x <- st_coordinates(resp)[,1]
+        resp$y <- st_coordinates(resp)[,2]
+        resp$pred <- resp$var1.pred
+        resp$pred <- resp$pred
+        
+        kpred <- terra::rasterize(resp, grid, 
+                                  field = "pred")
+        
+        tmap_options(check.and.fix = TRUE)
+        tmap_mode("plot")
+        tm_shape(kpred) + 
+          tm_raster(alpha = 0.6, 
+                    palette = "viridis",
+                    title = paste0(input_msmt)) +
+          tm_layout(main.title = paste0("Distribution of ",input_msmt," for Year ",input_year),
+                    main.title.position = "center",
+                    main.title.size = 1.2,
+                    legend.height = 0.45, 
+                    legend.width = 0.35,
+                    frame = TRUE) +
+          tm_compass(type="8star", size = 2) +
+          tm_scale_bar() +
+          tm_grid(alpha =0.2)
+        
+      }
+      
+    })
+    
+  })
+  
+  # geo vario 1 ----
+  output$vario_1 <- renderPlot({
+    
+    if (input$geoTuneButton == 0) return()
+    
+    isolate({
+      
+      if (input$methodGeoIdw == "IDW") {
+        
+        return()
+        
+      } else {
+        
+        #Inputs for prototyping
+        input_year <- input$periodRangeGeo1
+        input_msmt <- input$variableGeoKrig
+        input_agg <- input$aggGeoKrig
+        input_model <- input$modelGeoKrig
+        input_psill <- input$psilGeoKrig
+        input_range <- input$rangeGeoKrig
+        input_nugget <- input$nuggetGeoKrig
+        
+        #Preparing the input data
+        input_data <- climate_data %>%
+          select('Station','Year','Month','Day',input_msmt)%>%
+          filter(Year == input_year)
+        
+        rfdata <- input_data%>%
+          select(c(1,5))%>%
+          group_by(Station)%>%
+          summarise(year_agg = switch(input_agg,
+                                      sum = sum(!!rlang::sym(input_msmt)),
+                                      mean = mean(!!rlang::sym(input_msmt))
+          ))%>%
+          mutate(
+            year_agg = ifelse(is.na(year_agg), 0, year_agg)
+          )%>%
+          ungroup()
+        
+        #Converting aspatial data into geospatial data
+        rfdata <- rfdata %>%
+          left_join(stations)
+        
+        rfdata_sf<- st_as_sf(rfdata,
+                             coords = c("Longitude", "Latitude"),
+                             crs = 4326)%>%
+          st_transform(crs = 3414)
+        
+        #Importing planning subzone boundary data
+        mpsz2019 <- st_read(dsn = "data/geospatial", layer = "MPSZ-2019")%>%
+          st_transform(crs = 3414)
+        
+        # fitting variogram model
+        v <- variogram(year_agg ~ 1, 
+                       data = rfdata_sf)
+        
+        plot(v)
+
+      }
+      
+    })
+    
+  })
+  
+  # geo vario 2 ----
+  output$vario_2 <- renderPlot({
+    
+    if (input$geoTuneButton == 0) return()
+    
+    isolate({
+      
+      if (input$methodGeoIdw == "IDW") {
+        
+        return()
+        
+      } else {
+        
+        #Inputs for prototyping
+        input_year <- input$periodRangeGeo2
+        input_msmt <- input$variableGeoKrig
+        input_agg <- input$aggGeoKrig
+        input_model <- input$modelGeoKrig
+        input_psill <- input$psilGeoKrig
+        input_range <- input$rangeGeoKrig
+        input_nugget <- input$nuggetGeoKrig
+        
+        #Preparing the input data
+        input_data <- climate_data %>%
+          select('Station','Year','Month','Day',input_msmt)%>%
+          filter(Year == input_year)
+        
+        rfdata <- input_data%>%
+          select(c(1,5))%>%
+          group_by(Station)%>%
+          summarise(year_agg = switch(input_agg,
+                                      sum = sum(!!rlang::sym(input_msmt)),
+                                      mean = mean(!!rlang::sym(input_msmt))
+          ))%>%
+          mutate(
+            year_agg = ifelse(is.na(year_agg), 0, year_agg)
+          )%>%
+          ungroup()
+        
+        #Converting aspatial data into geospatial data
+        rfdata <- rfdata %>%
+          left_join(stations)
+        
+        rfdata_sf<- st_as_sf(rfdata,
+                             coords = c("Longitude", "Latitude"),
+                             crs = 4326)%>%
+          st_transform(crs = 3414)
+        
+        #Importing planning subzone boundary data
+        mpsz2019 <- st_read(dsn = "data/geospatial", layer = "MPSZ-2019")%>%
+          st_transform(crs = 3414)
+        
+        # fitting variogram model
+        v <- variogram(year_agg ~ 1, 
+                       data = rfdata_sf)
+        
+        plot(v)
+        
+      }
+      
+    })
+    
+  })
+  
 
   # lm avp ----
   output$lm_avp <- renderPlot({
@@ -76,6 +671,12 @@ function(input, output, session) {
       # slice dates
       df_slice <- df %>% dplyr::filter(Date >= input$periodRangeLm[1] &
                                          Date <= input$periodRangeLm[2])
+      
+      v <- "Cases"
+      if (input$lmRadioCasesInput == "None") {v <- v} 
+      else if (input$lmRadioCasesInput == "Log") {v <- paste0("log_",v)} 
+      else if (input$lmRadioCasesInput == "MinMax") {v <- paste0("mm_",v)} 
+      else if (input$lmRadioCasesInput == "Z") {v <- paste0("z_",v)}
       
       # lm formula construction
       j <- ""
@@ -150,7 +751,7 @@ function(input, output, session) {
       if (j != "") {
         
         # lm model
-        lm_mdl <- lm(as.formula(paste0("Cases ~ ",j)), data=df_slice)
+        lm_mdl <- lm(as.formula(paste0(v," ~ ",j)), data=df_slice)
         
         # stepwise
         if (input$lmRadioStepwise == "Forward") {
@@ -161,12 +762,14 @@ function(input, output, session) {
         
         # melt results
         df_a <- data.frame(Date=df_slice$Date, Cases=lm_mdl$fitted.values, Type="Fitted")
-        df_b <- data.frame(Date=df_slice$Date, Cases=df_slice$Cases, Type="Observed")
+        df_b <- data.frame(Date=df_slice$Date, Cases=df_slice[[v]], Type="Observed")
         df_c <- dplyr::bind_rows(df_a, df_b)
+        
+        colnames(df_c)[2] <- v
         
         # plot
         ggplot(data = df_c) +
-          geom_line(aes(x = Date, y = Cases, colour = Type)) +
+          geom_line(aes(x = Date, y = .data[[v]], colour = Type)) +
           ggtitle("Observed vs Fitted")
       } else {
         
@@ -195,6 +798,13 @@ function(input, output, session) {
                                          Date <= input$periodRangeLm[2])
       
       # lm formula construction
+      
+      v <- "Cases"
+      if (input$lmRadioCasesInput == "None") {v <- v} 
+      else if (input$lmRadioCasesInput == "Log") {v <- paste0("log_",v)} 
+      else if (input$lmRadioCasesInput == "MinMax") {v <- paste0("mm_",v)} 
+      else if (input$lmRadioCasesInput == "Z") {v <- paste0("z_",v)}
+      
       j <- ""
       for (s in input$checkBoxLm) {
         if (s == "avg_rainfall") {
@@ -267,7 +877,7 @@ function(input, output, session) {
       if (j != "") {
         
         # lm model
-        lm_mdl <- lm(as.formula(paste0("Cases ~ ",j)), data=df_slice)
+        lm_mdl <- lm(as.formula(paste0(v," ~ ",j)), data=df_slice)
         
         # stepwise
         if (input$lmRadioStepwise == "Forward") {
@@ -315,6 +925,12 @@ function(input, output, session) {
                                          Date <= input$periodRangeLm[2])
       
       # lm formula construction
+      v <- "Cases"
+      if (input$lmRadioCasesInput == "None") {v <- v} 
+      else if (input$lmRadioCasesInput == "Log") {v <- paste0("log_",v)} 
+      else if (input$lmRadioCasesInput == "MinMax") {v <- paste0("mm_",v)} 
+      else if (input$lmRadioCasesInput == "Z") {v <- paste0("z_",v)}
+      
       j <- ""
       for (s in input$checkBoxLm) {
         if (s == "avg_rainfall") {
@@ -387,7 +1003,7 @@ function(input, output, session) {
       if (j != "") {
         
         # lm model
-        lm_mdl <- lm(as.formula(paste0("Cases ~ ",j)), data=df_slice)
+        lm_mdl <- lm(as.formula(paste0(v," ~ ",j)), data=df_slice)
         
         # stepwise
         if (input$lmRadioStepwise == "Forward") {
@@ -429,6 +1045,12 @@ function(input, output, session) {
                                          Date <= input$periodRangeLm[2])
       
       # lm formula construction
+      v <- "Cases"
+      if (input$lmRadioCasesInput == "None") {v <- v} 
+      else if (input$lmRadioCasesInput == "Log") {v <- paste0("log_",v)} 
+      else if (input$lmRadioCasesInput == "MinMax") {v <- paste0("mm_",v)} 
+      else if (input$lmRadioCasesInput == "Z") {v <- paste0("z_",v)}
+      
       j <- ""
       for (s in input$checkBoxLm) {
         if (s == "avg_rainfall") {
@@ -501,7 +1123,7 @@ function(input, output, session) {
       if (j != "") {
         
         # lm model
-        lm_mdl <- lm(as.formula(paste0("Cases ~ ",j)), data=df_slice)
+        lm_mdl <- lm(as.formula(paste0(v," ~ ",j)), data=df_slice)
         
         # stepwise
         if (input$lmRadioStepwise == "Forward") {
@@ -535,6 +1157,12 @@ function(input, output, session) {
                                          Date <= input$periodRangeLm[2])
       
       # lm formula construction
+      v <- "Cases"
+      if (input$lmRadioCasesInput == "None") {v <- v} 
+      else if (input$lmRadioCasesInput == "Log") {v <- paste0("log_",v)} 
+      else if (input$lmRadioCasesInput == "MinMax") {v <- paste0("mm_",v)} 
+      else if (input$lmRadioCasesInput == "Z") {v <- paste0("z_",v)}
+      
       j <- ""
       for (s in input$checkBoxLm) {
         if (s == "avg_rainfall") {
@@ -607,7 +1235,7 @@ function(input, output, session) {
       if (j != "") {
         
         # lm model
-        lm_mdl <- lm(as.formula(paste0("Cases ~ ",j)), data=df_slice)
+        lm_mdl <- lm(as.formula(paste0(v," ~ ",j)), data=df_slice)
         
         # stepwise
         if (input$lmRadioStepwise == "Forward") {
@@ -653,7 +1281,13 @@ function(input, output, session) {
                                          Date <= input$periodRangeLm[2])
       
       # lm formula construction
-      j <- c("Cases")
+      v <- "Cases"
+      if (input$lmRadioCasesInput == "None") {v <- v} 
+      else if (input$lmRadioCasesInput == "Log") {v <- paste0("log_",v)} 
+      else if (input$lmRadioCasesInput == "MinMax") {v <- paste0("mm_",v)} 
+      else if (input$lmRadioCasesInput == "Z") {v <- paste0("z_",v)}
+      
+      j <- c(v)
       for (s in input$checkBoxLm) {
         if (s == "avg_rainfall") {
           if (input$lmRadioAvgRainfallInput == "None") {s <- s} 
@@ -723,12 +1357,12 @@ function(input, output, session) {
       lm_tbl <- df_slice %>% as_tsibble(index = Date) %>% fill_gaps(.full = TRUE) %>% fill(Cases)
       
       first_var <- TRUE
-      for (v in j) {
+      for (k in j) {
         if (first_var == TRUE) {
-          p <- eval(parse(text = paste0("lm_tbl %>% autoplot(",v,")")))
+          p <- eval(parse(text = paste0("lm_tbl %>% autoplot(",k,")")))
           first_var <- FALSE
         } else {
-          p <- p / eval(parse(text = paste0("lm_tbl %>% autoplot(",v,")")))
+          p <- p / eval(parse(text = paste0("lm_tbl %>% autoplot(",k,")")))
         }
       }
       
@@ -981,14 +1615,19 @@ function(input, output, session) {
         }
       }
       
-      # tslm model
-      tslm_cv_metrics <- tslm_slice %>%
-        model(TSLM(as.formula(paste0(v," ~ ",j)))) %>% accuracy()
       
-      if (length(input$checkBoxVar) == 0) {
+      
+      if (j != "") {
+        # tslm model
+        tslm_cv_metrics <- tslm_slice %>%
+          model(TSLM(as.formula(paste0(v," ~ ",j)))) %>% accuracy()
+        
         return(tslm_cv_metrics[c("RMSE","MAE","MAPE")])
+        
       } else {
-        return(tslm_cv_metrics[c("RMSE","MAE","MAPE")])
+        data.frame("RMSE" = NA,
+                   "MAE" = NA,
+                   "MAPE" = NA)
       }
       
     })
@@ -1000,6 +1639,379 @@ function(input, output, session) {
   width = "100%",
   align = "c",
   caption = "<h4>Model Metrics</h4>",
+  caption.placement = getOption("xtable.caption.placement", "top"))
+  
+  # tslm residuals ----
+  output$tslm_rdl <- renderPlot({
+    
+    if (input$tslmTuneButton == 0) return()
+    
+    isolate({
+      
+      # slice dates
+      tslm_slice <- tslm_tbl %>% dplyr::filter(Date >= input$periodRangeTslm[1] &
+                                                 Date <= input$periodRangeTslm[2])
+      
+      # Parse inputs
+      v <- "Cases"
+      
+      if (input$tslmRadioCasesInput == "None") {v <- v} 
+      else if (input$tslmRadioCasesInput == "Log") {v <- paste0("log_",v)} 
+      else if (input$tslmRadioCasesInput == "MinMax") {v <- paste0("mm_",v)} 
+      else if (input$tslmRadioCasesInput == "Z") {v <- paste0("z_",v)}
+      if (input$tslmDiffCasesInput > 0) {v <- paste0("diff",input$tslmDiffCasesInput,"_",v)}
+      
+      v1 <- v
+      j = ""
+      
+      # Mega if else loop to conjure string input for VAR model formula
+      # Sorry cant think of a better way...
+      for (s in input$checkBoxTslm) {
+        if (s == "avg_rainfall") {
+          if (input$tslmRadioAvgRainfallInput == "None") {s <- s} 
+          else if (input$tslmRadioAvgRainfallInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioAvgRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioAvgRainfallInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffAvgRainfallInput > 0) {s <- paste0("diff",input$tslmDiffAvgRainfallInput,"_",s)}
+        }
+        if (s == "tot_rainfall") {
+          if (input$tslmRadioTotRainfallInput == "None") {s <- s} 
+          else if (input$tslmRadioTotRainfallInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioTotRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioTotRainfallInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffTotRainfallInput > 0) {s <- paste0("diff",input$tslmDiffTotRainfallInput,"_",s)}
+        }
+        if (s == "max_30m_rainfall") {
+          if (input$tslmRadioMax30mRainfallInput == "None") {s <- s} 
+          else if (input$tslmRadioMax30mRainfallInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioMax30mRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioMax30mRainfallInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffMax30mRainfallInput > 0) {s <- paste0("diff",input$tslmDiffMax30mRainfallInput,"_",s)}
+        }
+        if (s == "max_60m_rainfall") {
+          if (input$tslmRadioMax60mRainfallInput == "None") {s <- s} 
+          else if (input$tslmRadioMax60mRainfallInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioMax60mRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioMax60mRainfallInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffMax60mRainfallInput > 0) {s <- paste0("diff",input$tslmDiffMax60mRainfallInput,"_",s)}
+        }
+        if (s == "max_120m_rainfall") {
+          if (input$tslmRadioMax120mRainfallInput == "None") {s <- s} 
+          else if (input$tslmRadioMax120mRainfallInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioMax120mRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioMax120mRainfallInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffMax120mRainfallInput > 0) {s <- paste0("diff",input$tslmDiffMax120mRainfallInput,"_",s)}
+        }
+        if (s == "avg_temp") {
+          if (input$tslmRadioAvgTempInput == "None") {s <- s} 
+          else if (input$tslmRadioAvgTempInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioAvgTempInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioAvgTempInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffAvgTempInput > 0) {s <- paste0("diff",input$tslmDiffAvgTempInput,"_",s)}
+        }
+        if (s == "max_temp") {
+          if (input$tslmRadioMaxTempInput == "None") {s <- s} 
+          else if (input$tslmRadioMaxTempInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioMaxTempInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioMaxTempInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffMaxTempInput > 0) {s <- paste0("diff",input$tslmDiffMaxTempInput,"_",s)}
+        }
+        if (s == "min_temp") {
+          if (input$tslmRadioMinTempInput == "None") {s <- s} 
+          else if (input$tslmRadioMinTempInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioMinTempInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioMinTempInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffMinTempInput > 0) {s <- paste0("diff",input$tslmDiffMinTempInput,"_",s)}
+        }
+        if (s == "avg_wind") {
+          if (input$tslmRadioAvgWindInput == "None") {s <- s} 
+          else if (input$tslmRadioAvgWindInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioAvgWindInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioAvgWindInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffAvgWindInput > 0) {s <- paste0("diff",input$tslmDiffAvgWindInput,"_",s)}
+        }
+        if (s == "max_wind") {
+          if (input$tslmRadioMaxWindInput == "None") {s <- s} 
+          else if (input$tslmRadioMaxWindInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioMaxWindInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioMaxWindInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffMaxWindInput > 0) {s <- paste0("diff",input$tslmDiffMaxWindInput,"_",s)}
+        }
+        if (j == "") {
+          j <- s
+        } else {
+          j <- paste0(j,"+",s)
+        }
+      }
+      
+      if (j != "") {
+        
+        # tslm model
+        tslm_mdl <- tslm_slice %>%
+          model(TSLM(as.formula(paste0(v," ~ ",j))))
+        
+        # tslm residuals
+        gg_tsresiduals(tslm_mdl)
+        
+      } else {
+        
+        return()
+      }
+      
+    })
+    
+  })
+  
+  # tslm coeffs ----
+  output$tslm_coeff <- renderPlot({
+    
+    if (input$tslmTuneButton == 0) return()
+    
+    isolate({
+      
+      # slice dates
+      tslm_slice <- tslm_tbl %>% dplyr::filter(Date >= input$periodRangeTslm[1] &
+                                                 Date <= input$periodRangeTslm[2])
+      
+      # Parse inputs
+      v <- "Cases"
+      
+      if (input$tslmRadioCasesInput == "None") {v <- v} 
+      else if (input$tslmRadioCasesInput == "Log") {v <- paste0("log_",v)} 
+      else if (input$tslmRadioCasesInput == "MinMax") {v <- paste0("mm_",v)} 
+      else if (input$tslmRadioCasesInput == "Z") {v <- paste0("z_",v)}
+      if (input$tslmDiffCasesInput > 0) {v <- paste0("diff",input$tslmDiffCasesInput,"_",v)}
+      
+      v1 <- v
+      j = ""
+      
+      # Mega if else loop to conjure string input for VAR model formula
+      # Sorry cant think of a better way...
+      for (s in input$checkBoxTslm) {
+        if (s == "avg_rainfall") {
+          if (input$tslmRadioAvgRainfallInput == "None") {s <- s} 
+          else if (input$tslmRadioAvgRainfallInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioAvgRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioAvgRainfallInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffAvgRainfallInput > 0) {s <- paste0("diff",input$tslmDiffAvgRainfallInput,"_",s)}
+        }
+        if (s == "tot_rainfall") {
+          if (input$tslmRadioTotRainfallInput == "None") {s <- s} 
+          else if (input$tslmRadioTotRainfallInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioTotRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioTotRainfallInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffTotRainfallInput > 0) {s <- paste0("diff",input$tslmDiffTotRainfallInput,"_",s)}
+        }
+        if (s == "max_30m_rainfall") {
+          if (input$tslmRadioMax30mRainfallInput == "None") {s <- s} 
+          else if (input$tslmRadioMax30mRainfallInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioMax30mRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioMax30mRainfallInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffMax30mRainfallInput > 0) {s <- paste0("diff",input$tslmDiffMax30mRainfallInput,"_",s)}
+        }
+        if (s == "max_60m_rainfall") {
+          if (input$tslmRadioMax60mRainfallInput == "None") {s <- s} 
+          else if (input$tslmRadioMax60mRainfallInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioMax60mRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioMax60mRainfallInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffMax60mRainfallInput > 0) {s <- paste0("diff",input$tslmDiffMax60mRainfallInput,"_",s)}
+        }
+        if (s == "max_120m_rainfall") {
+          if (input$tslmRadioMax120mRainfallInput == "None") {s <- s} 
+          else if (input$tslmRadioMax120mRainfallInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioMax120mRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioMax120mRainfallInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffMax120mRainfallInput > 0) {s <- paste0("diff",input$tslmDiffMax120mRainfallInput,"_",s)}
+        }
+        if (s == "avg_temp") {
+          if (input$tslmRadioAvgTempInput == "None") {s <- s} 
+          else if (input$tslmRadioAvgTempInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioAvgTempInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioAvgTempInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffAvgTempInput > 0) {s <- paste0("diff",input$tslmDiffAvgTempInput,"_",s)}
+        }
+        if (s == "max_temp") {
+          if (input$tslmRadioMaxTempInput == "None") {s <- s} 
+          else if (input$tslmRadioMaxTempInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioMaxTempInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioMaxTempInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffMaxTempInput > 0) {s <- paste0("diff",input$tslmDiffMaxTempInput,"_",s)}
+        }
+        if (s == "min_temp") {
+          if (input$tslmRadioMinTempInput == "None") {s <- s} 
+          else if (input$tslmRadioMinTempInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioMinTempInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioMinTempInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffMinTempInput > 0) {s <- paste0("diff",input$tslmDiffMinTempInput,"_",s)}
+        }
+        if (s == "avg_wind") {
+          if (input$tslmRadioAvgWindInput == "None") {s <- s} 
+          else if (input$tslmRadioAvgWindInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioAvgWindInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioAvgWindInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffAvgWindInput > 0) {s <- paste0("diff",input$tslmDiffAvgWindInput,"_",s)}
+        }
+        if (s == "max_wind") {
+          if (input$tslmRadioMaxWindInput == "None") {s <- s} 
+          else if (input$tslmRadioMaxWindInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioMaxWindInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioMaxWindInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffMaxWindInput > 0) {s <- paste0("diff",input$tslmDiffMaxWindInput,"_",s)}
+        }
+        if (j == "") {
+          j <- s
+        } else {
+          j <- paste0(j,"+",s)
+        }
+      }
+      
+      if (j != "") {
+        
+        # tslm model
+        tslm_mdl <- tslm_slice %>%
+          model(TSLM(as.formula(paste0(v," ~ ",j))))
+        
+        # tslm residuals
+        ggcoefstats(tslm_mdl %>% tidy(), 
+                    output = "plot")
+        
+      } else {
+        
+        return()
+      }
+      
+    })
+    
+  })
+  
+  # tslm coeffs error ----
+  output$tslm_coeff_error <- renderTable({
+    
+    if (input$tslmTuneButton == 0) return()
+    
+    isolate({
+      
+      # slice dates
+      tslm_slice <- tslm_tbl %>% dplyr::filter(Date >= input$periodRangeTslm[1] &
+                                                 Date <= input$periodRangeTslm[2])
+      
+      # Parse inputs
+      v <- "Cases"
+      
+      if (input$tslmRadioCasesInput == "None") {v <- v} 
+      else if (input$tslmRadioCasesInput == "Log") {v <- paste0("log_",v)} 
+      else if (input$tslmRadioCasesInput == "MinMax") {v <- paste0("mm_",v)} 
+      else if (input$tslmRadioCasesInput == "Z") {v <- paste0("z_",v)}
+      if (input$tslmDiffCasesInput > 0) {v <- paste0("diff",input$tslmDiffCasesInput,"_",v)}
+      
+      v1 <- v
+      j = ""
+      
+      # Mega if else loop to conjure string input for VAR model formula
+      # Sorry cant think of a better way...
+      for (s in input$checkBoxTslm) {
+        if (s == "avg_rainfall") {
+          if (input$tslmRadioAvgRainfallInput == "None") {s <- s} 
+          else if (input$tslmRadioAvgRainfallInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioAvgRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioAvgRainfallInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffAvgRainfallInput > 0) {s <- paste0("diff",input$tslmDiffAvgRainfallInput,"_",s)}
+        }
+        if (s == "tot_rainfall") {
+          if (input$tslmRadioTotRainfallInput == "None") {s <- s} 
+          else if (input$tslmRadioTotRainfallInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioTotRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioTotRainfallInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffTotRainfallInput > 0) {s <- paste0("diff",input$tslmDiffTotRainfallInput,"_",s)}
+        }
+        if (s == "max_30m_rainfall") {
+          if (input$tslmRadioMax30mRainfallInput == "None") {s <- s} 
+          else if (input$tslmRadioMax30mRainfallInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioMax30mRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioMax30mRainfallInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffMax30mRainfallInput > 0) {s <- paste0("diff",input$tslmDiffMax30mRainfallInput,"_",s)}
+        }
+        if (s == "max_60m_rainfall") {
+          if (input$tslmRadioMax60mRainfallInput == "None") {s <- s} 
+          else if (input$tslmRadioMax60mRainfallInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioMax60mRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioMax60mRainfallInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffMax60mRainfallInput > 0) {s <- paste0("diff",input$tslmDiffMax60mRainfallInput,"_",s)}
+        }
+        if (s == "max_120m_rainfall") {
+          if (input$tslmRadioMax120mRainfallInput == "None") {s <- s} 
+          else if (input$tslmRadioMax120mRainfallInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioMax120mRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioMax120mRainfallInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffMax120mRainfallInput > 0) {s <- paste0("diff",input$tslmDiffMax120mRainfallInput,"_",s)}
+        }
+        if (s == "avg_temp") {
+          if (input$tslmRadioAvgTempInput == "None") {s <- s} 
+          else if (input$tslmRadioAvgTempInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioAvgTempInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioAvgTempInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffAvgTempInput > 0) {s <- paste0("diff",input$tslmDiffAvgTempInput,"_",s)}
+        }
+        if (s == "max_temp") {
+          if (input$tslmRadioMaxTempInput == "None") {s <- s} 
+          else if (input$tslmRadioMaxTempInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioMaxTempInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioMaxTempInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffMaxTempInput > 0) {s <- paste0("diff",input$tslmDiffMaxTempInput,"_",s)}
+        }
+        if (s == "min_temp") {
+          if (input$tslmRadioMinTempInput == "None") {s <- s} 
+          else if (input$tslmRadioMinTempInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioMinTempInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioMinTempInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffMinTempInput > 0) {s <- paste0("diff",input$tslmDiffMinTempInput,"_",s)}
+        }
+        if (s == "avg_wind") {
+          if (input$tslmRadioAvgWindInput == "None") {s <- s} 
+          else if (input$tslmRadioAvgWindInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioAvgWindInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioAvgWindInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffAvgWindInput > 0) {s <- paste0("diff",input$tslmDiffAvgWindInput,"_",s)}
+        }
+        if (s == "max_wind") {
+          if (input$tslmRadioMaxWindInput == "None") {s <- s} 
+          else if (input$tslmRadioMaxWindInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioMaxWindInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioMaxWindInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffMaxWindInput > 0) {s <- paste0("diff",input$tslmDiffMaxWindInput,"_",s)}
+        }
+        if (j == "") {
+          j <- s
+        } else {
+          j <- paste0(j,"+",s)
+        }
+      }
+      print(j)
+      if (j != "") {
+        
+        
+        
+        # tslm model
+        tslm_mdl <- tslm_slice %>%
+          model(TSLM(as.formula(paste0(v," ~ ",j))))
+        
+        # tslm residuals
+        tslm_mdl %>% tidy() %>% select(-c(".model"))
+        
+      } else {
+        
+        return()
+      }
+      
+    })
+    
+  },
+  hover = TRUE,
+  bordered = TRUE,
+  striped = TRUE,
+  width = "100%",
+  align = "c",
+  caption = "<h4>Model Estimates</h4>",
   caption.placement = getOption("xtable.caption.placement", "top"))
   
   # arima rdl ----

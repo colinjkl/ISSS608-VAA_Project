@@ -14,6 +14,10 @@ pacman::p_load(tidyverse, ggiraph, ggstatsplot, patchwork, ggthemes, sf, terra, 
 climate_data <- read_csv("data/clean_climate_data.csv")
 ```
 
+```{r}
+stationList <- unique(climate_data$Station)
+```
+
 ### 3 Oneway ANOVA Test
 
 ```{r}

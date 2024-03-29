@@ -49,6 +49,13 @@ tslm_mdl %>%
 ```
 
 ```{r}
+tslm_mdl |>
+  augment() |>
+  ACF() |>
+  autoplot()
+```
+
+```{r}
 gg_tsresiduals(ts_log_m1)
 
 ```

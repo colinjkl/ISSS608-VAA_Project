@@ -21,8 +21,27 @@ pacman::p_load(
   MLmetrics,
   performance,
   caret,
-  ggstatsplot
+  ggstatsplot,
+  ggiraph, 
+  ggthemes, 
+  sf, 
+  terra, 
+  gstat, 
+  automap, 
+  tmap, 
+  viridis, 
+  zoo,
+  rstantools
 )
+
+climate_data <- read_csv("data/clean_climate_data.csv")
+
+edaVarList <- colnames(climate_data[!grepl("Station|Month|Day|Date|Year", colnames(climate_data))])
+
+stationList <- unique(climate_data$Station)
+
+start_year <- climate_data$Year[1]
+end_year <- climate_data$Year[nrow(climate_data)]
 
 df <- read_csv("data/dengue_climate_joined_by_week_transformed_diff.csv")
 
@@ -34,7 +53,7 @@ varList <- colnames(df[!grepl("^z_|^mm_|^log_|^diff|Year|WkNo|Cases|Date", colna
 arima_ts <-  df %>% dplyr::select(Date, Cases)
 arima_tbl <- arima_ts %>% as_tsibble(index = Date) %>% fill_gaps(.full = TRUE) %>% fill(Cases)
 
-start_date <- arima_tbl$Date[34]
+start_date <- arima_tbl$Date[1]
 end_date <- arima_tbl$Date[nrow(arima_tbl)]
 
 
@@ -50,9 +69,303 @@ fluidPage(
   navlistPanel(
     id = "tabset",
     widths = c(2,10),
+    
+    # New section ----
     "EDA",
-    tabPanel("Distribution"),
-    tabPanel("Country by Country Comparison"),
+    
+    # Anova module ----
+    tabPanel("One Way Anova",
+             # Anova initialization columns ----
+             column(
+               3,
+               
+               # Anova parameters ----
+               strong("Variable and Parameters"),
+               wellPanel(
+                 fluidRow(
+                   sliderInput(
+                     "periodRangeAnova",
+                     "Select year:",
+                     min = start_year, max = end_year,
+                     value = c(end_year-1, end_year),
+                     width = "90%"
+                   )
+                 ),
+                 fluidRow(
+                   selectInput(
+                     "variableAnova",
+                     "Select Variable:",
+                     choices = edaVarList
+                   )
+                 ),
+                 fluidRow(
+                   div(actionButton("anovaTuneButton", "Go"), style = "float:right")
+                 )
+               ),
+               
+               # Anova stations 1
+               strong("Weather Station 1"),
+               wellPanel(
+                 fluidRow(
+                   selectInput(
+                     "stationsAnova1",
+                     "Select Station:",
+                     choices = stationList,
+                     selected = "Changi"
+                   )
+                 )
+               ),
+               
+               # Anova stations 2
+               strong("Weather Station 2"),
+               wellPanel(
+                 fluidRow(
+                   selectInput(
+                     "stationsAnova2",
+                     "Select Station:",
+                     choices = stationList,
+                     selected = "Paya Lebar"
+                   )
+                 )
+               ),
+             ),
+             # End column ----
+             
+             # Anova plot columns ----
+             column(
+               6,
+               # Anova first plot ----
+               strong("Anova 1"),
+               fluidRow(
+                 plotOutput("anova_1")
+               ),
+               # Anova second plot ----
+               strong("Anova 2"),
+               fluidRow(
+                 plotOutput("anova_2")
+               )
+             )
+    ),
+    # End module ----
+    
+    # Geo module ----
+    tabPanel("Geospatial Map",
+             # Geo initialization columns ----
+             column(
+               3,
+               
+               # Geo Method ----
+               strong("Interpolation methods"),
+               wellPanel(
+                 fluidRow(
+                   radioButtons(
+                     "methodGeoIdw",
+                     "Select Method:",
+                     choiceNames = list("IDW", "Kriging"),
+                     choiceValues = list("IDW", "Kriging"),
+                     inline = TRUE
+                   )
+                 ),
+                 fluidRow(
+                   div(actionButton("geoTuneButton", "Go"), style = "float:right")
+                 )
+               ),
+               
+               # Geo Idw parameters ----
+               strong("Variable and Parameters"),
+               conditionalPanel(
+                 condition = "input.methodGeoIdw == 'IDW'",
+                 wellPanel(
+                   fluidRow(
+                     selectInput(
+                       "variableGeoIdw",
+                       "Select Variable:",
+                       choices = edaVarList
+                     ),
+                     radioButtons(
+                       "aggGeoIdw",
+                       "Select Aggregation:",
+                       choiceNames = list("Mean", "Sum"),
+                       choiceValues = list("mean", "sum"),
+                       inline = TRUE
+                     ),
+                     sliderInput(
+                       "nmaxGeoIdw",
+                       "Select nmax:",
+                       min = 1, max = 20,
+                       value = 1,
+                       width = "90%"
+                     )
+                   )
+                 )
+               ),
+               
+               # Geo Krig parameters ----
+               conditionalPanel(
+                 condition = "input.methodGeoIdw == 'Kriging'",
+                 wellPanel(
+                   fluidRow(
+                     selectInput(
+                       "variableGeoKrig",
+                       "Select Variable:",
+                       choices = edaVarList
+                     ),
+                     radioButtons(
+                       "aggGeoKrig",
+                       "Select Aggregation:",
+                       choiceNames = list("Mean", "Sum"),
+                       choiceValues = list("mean", "sum"),
+                       inline = TRUE
+                     ),
+                     tags$table(
+                       width = "100%",
+                       tags$tr(
+                         tags$td(
+                           width = "50%",
+                           strong("Model"),
+                           tags$br(),
+                           tags$p("Type of variogram model", style = "font-size:10px"),
+                           align = "left"
+                         ),
+                         tags$td(
+                           selectInput(inputId = "modelGeoKrig",
+                                       label = NULL,
+                                       choices = c("Spherical"="Sph",
+                                                   "Exponential"="Exp",
+                                                   "Gaussian"="Gau",
+                                                   "Matern"="Mat")),
+                           width = "50%"
+                         )
+                       ),
+                       tags$tr(
+                         tags$td(
+                           width = "50%",
+                           strong("Psill"),
+                           tags$br(),
+                           tags$p("(partial) sill of the variogram", style = "font-size:10px"),
+                           align = "left"
+                         ),
+                         tags$td(
+                           numericInput(inputId = "psilGeoKrig",
+                                        label = NULL,
+                                        value = 0.5,
+                                        min = 0,
+                                        max = 1,
+                                        step = 0.05),
+                           width = "50%"
+                         )
+                       ),
+                       tags$tr(
+                         tags$td(
+                           width = "50%",
+                           strong("Range"),
+                           tags$br(),
+                           tags$p("range parameter of the variogram", style = "font-size:10px"),
+                           align = "left"
+                         ),
+                         tags$td(
+                           numericInput(inputId = "rangeGeoKrig",
+                                        label = NULL,
+                                        value = 5000,
+                                        min = 0,
+                                        step = 100),
+                           width = "50%"
+                         )
+                       ),
+                       tags$tr(
+                         tags$td(
+                           width = "50%",
+                           strong("Nugget"),
+                           tags$br(),
+                           tags$p("smoothness parameter for Matern", style = "font-size:10px"),
+                           align = "left"
+                         ),
+                         tags$td(
+                           numericInput(inputId = "nuggetGeoKrig",
+                                        label = NULL,
+                                        value = 0.5,
+                                        min = 0,
+                                        step = 0.1),
+                           width = "50%"
+                         )
+                       ),
+                     )
+                   )
+                 )
+               ),
+               
+               # Geo choose dates 1 ----
+               strong("Map 1"),
+               wellPanel(
+                 fluidRow(
+                   sliderInput(
+                     "periodRangeGeo1",
+                     "Select year:",
+                     min = start_year, max = end_year,
+                     value = start_year,
+                     width = "90%"
+                   )
+                 )
+               ),
+               
+               # Geo choose dates 2 ----
+               strong("Map 2"),
+               wellPanel(
+                 fluidRow(
+                   sliderInput(
+                     "periodRangeGeo2",
+                     "Select year:",
+                     min = start_year, max = end_year,
+                     value = end_year,
+                     width = "90%"
+                   )
+                 )
+               ),
+             ),
+             # End column ----
+             
+             # Geo plot column ----
+             column(
+               6,
+               
+               # Geo first plot ----
+               strong("Map 1"),
+               fluidRow(
+                 plotOutput("geo_1")
+               ),
+               # Geo second plot ----
+               strong("Map 2"),
+               fluidRow(
+                 plotOutput("geo_2")
+               )
+             ),
+             # End column ----
+             
+             # Geo variogram column ----
+             column(
+               3,
+               
+               # Geo first plot ----
+               conditionalPanel(
+                 condition = "input.methodGeoIdw == 'Kriging'",
+                 fluidRow(
+                   strong("Variogram 1"),
+                   plotOutput("vario_1")
+                 )
+               ),
+               # Geo second plot ----
+               conditionalPanel(
+                 condition = "input.methodGeoIdw == 'Kriging'",
+                 fluidRow(
+                   strong("Variogram 2"),
+                   plotOutput("vario_2")
+                 )
+               )
+             )
+    ),
+    # End module ----
+    
+    # New section ----
     "Explanatory Model",
     
     # Lm module ---- 
@@ -108,6 +421,20 @@ fluidPage(
              # LM added variable column ----
              column(
                3,
+               
+               # Cases ----
+               strong("Dependent Variable - Cases"),
+               wellPanel(
+                 fluidRow(
+                   radioButtons(
+                     "lmRadioCasesInput",
+                     "Choose transformation:",
+                     choiceNames = list("None", "Log", "MinMax", "Z"),
+                     choiceValues = list("None", "Log", "MinMax", "Z"),
+                     inline = TRUE
+                   )
+                 )
+               ),
 
                # Avg Rainfall ----
                conditionalPanel(
@@ -375,6 +702,7 @@ fluidPage(
                3,
 
                # Cases ----
+               strong("Dependent Variable - Cases"),
                wellPanel(
                  fluidRow(
                    radioButtons(
@@ -507,7 +835,7 @@ fluidPage(
                            align = "left"
                          ),
                          tags$td(
-                           numericInput(inputId = "tslmDiffMax30mInput",
+                           numericInput(inputId = "tslmDiffMax30mRainfallInput",
                                         label = NULL,
                                         value = 0,
                                         min = 0,
@@ -545,7 +873,7 @@ fluidPage(
                            align = "left"
                          ),
                          tags$td(
-                           numericInput(inputId = "tslmDiffMax60mInput",
+                           numericInput(inputId = "tslmDiffMax60mRainfallInput",
                                         label = NULL,
                                         value = 0,
                                         min = 0,
@@ -583,7 +911,7 @@ fluidPage(
                            align = "left"
                          ),
                          tags$td(
-                           numericInput(inputId = "tslmDiffMax120mInput",
+                           numericInput(inputId = "tslmDiffMax120mRainfallInput",
                                         label = NULL,
                                         value = 0,
                                         min = 0,
@@ -1248,7 +1576,8 @@ fluidPage(
              # End column ----
     ),
     # End Module ----
-    
+  
+  # New section ----  
   "Multi-Variate Time Series",
     
   # VAR Module ----
@@ -1297,6 +1626,7 @@ fluidPage(
                  3,
                  
                  # Cases Panel ----
+                 strong("Dependent Variable - Cases"),
                  wellPanel(
                    fluidRow(
                      radioButtons(
