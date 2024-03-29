@@ -334,11 +334,11 @@ fluidPage(
     
     # Tslm module ----
     tabPanel("Time Series Linear Regression",
-             
+
              # Tslm initialization columns ----
              column(
                3,
-               
+
                # Tslm choose dates ----
                strong("Choose Dates"),
                wellPanel(
@@ -369,11 +369,11 @@ fluidPage(
                )
              ),
              # End column ----
-             
+
              # Tslm added variable column ----
              column(
                3,
-               
+
                # Cases ----
                wellPanel(
                  fluidRow(
@@ -444,7 +444,7 @@ fluidPage(
                    )
                  )
                ),
-               
+
                # Tot Rainfall ----
                conditionalPanel(
                  condition = ("input.checkBoxTslm.includes('tot_rainfall')"),
@@ -482,7 +482,7 @@ fluidPage(
                    )
                  )
                ),
-               
+
                # Max 30m Rainfall ----
                conditionalPanel(
                  condition = ("input.checkBoxTslm.includes('max_30m_rainfall')"),
@@ -520,7 +520,7 @@ fluidPage(
                    )
                  )
                ),
-               
+
                # Max 60m Rainfall ----
                conditionalPanel(
                  condition = ("input.checkBoxTslm.includes('max_60m_rainfall')"),
@@ -558,7 +558,7 @@ fluidPage(
                    )
                  )
                ),
-               
+
                # Max 120m Rainfall ----
                conditionalPanel(
                  condition = ("input.checkBoxTslm.includes('max_120m_rainfall')"),
@@ -596,7 +596,7 @@ fluidPage(
                    )
                  )
                ),
-               
+
                # Avg Temp ----
                conditionalPanel(
                  condition = ("input.checkBoxTslm.includes('avg_temp')"),
@@ -634,7 +634,7 @@ fluidPage(
                    )
                  )
                ),
-               
+
                # Max Temp ----
                conditionalPanel(
                  condition = ("input.checkBoxTslm.includes('max_temp')"),
@@ -672,7 +672,7 @@ fluidPage(
                    )
                  )
                ),
-               
+
                # Min Temp ----
                conditionalPanel(
                  condition = ("input.checkBoxTslm.includes('min_temp')"),
@@ -710,7 +710,7 @@ fluidPage(
                    )
                  )
                ),
-               
+
                # Avg Wind ----
                conditionalPanel(
                  condition = ("input.checkBoxTslm.includes('avg_wind')"),
@@ -748,7 +748,7 @@ fluidPage(
                    )
                  )
                ),
-               
+
                # Max Wind ----
                conditionalPanel(
                  condition = ("input.checkBoxTslm.includes('max_wind')"),
@@ -788,12 +788,12 @@ fluidPage(
                ),
              ),
              # End column ----
-             
+
              # Tslm Diagnostics column ----
              column(
                6,
-               tabsetPanel(   
-                 
+               tabsetPanel(
+
                  # Tslm avp plot ----
                  tabPanel(
                    "Actual vs Fit",
@@ -823,8 +823,8 @@ fluidPage(
                  )
                )
              ),
-             
-             
+
+
     ),
     # End Module ----
              

@@ -8,41 +8,44 @@ pacman::p_load(tidyverse, tsibbledata, fable, feasts, tsibble, ggstatsplot, perf
 ```
 
 ```{r}
-dengue_weather_wk_2014_tf <- read_csv("data/dengue_climate_joined_by_week_transformed_diff.csv")
+df <- read_csv("data/dengue_climate_joined_by_week_transformed_diff.csv")
 
 ```
 
 The dataframe needs to be converted to a tsibble object before running TSLM model.
 
 ```{r}
-# Create a date column which will be used to convert to a yearweek object in the next step
-
-dengue_weather_wk_2014_tf <- dengue_weather_wk_2014_tf %>%
-  mutate('Date' = make_date(year = Year) + weeks(WkNo))
-
-```
-
-```{r}
 # Convert the tibble dataframe to a tsibble dataframe
-
-dengue_weather_tsreg <- dengue_weather_wk_2014_tf %>%
-  mutate(Week = yearweek(Date)) %>%
-  as_tsibble(index = Week) %>%
-  fill_gaps(.full = TRUE)
-
+tslm_ts <-  df %>% dplyr::select(-c("Year", "WkNo"))
+tslm_tbl <- tslm_ts %>% as_tsibble(index = Date) %>% fill_gaps(.full = TRUE) %>% fill(colnames(tslm_ts))
+tslm_slice <- tslm_tbl
 ```
 
 ```{r}
-ts_log_m1 <- dengue_weather_tsreg %>%
-  model(TSLM(log_cases ~ log_tot_rainfall +
-                  log_avg_mean_temp + 
+tslm_mdl <- tslm_slice %>%
+  model(TSLM(log_Cases ~ log_tot_rainfall +
+                  log_avg_temp + 
                   log_max_temp +
                   log_min_temp +
                   log_avg_wind +
                   log_max_wind))
 
-report(ts_log_m1)
+report(tslm_mdl)
 
+```
+
+```{r}
+v = "Cases"
+j = "avg_temp + avg_rainfall"
+tslm_mdl <- tslm_slice %>%
+          model(TSLM(as.formula(paste0(v," ~ ",j))))
+
+report(tslm_mdl)
+```
+
+```{r}
+tslm_mdl %>%
+  accuracy()
 ```
 
 ```{r}

@@ -35,6 +35,9 @@ ets_tbl <- ets_ts %>% as_tsibble(index = Date) %>% fill_gaps(.full = TRUE) %>% f
 var_ts <-  df %>% dplyr::select(-c("Year", "WkNo"))
 var_tbl <- var_ts %>% as_tsibble(index = Date) %>% fill_gaps(.full = TRUE) %>% fill(colnames(var_ts))
 
+tslm_ts <-  df %>% dplyr::select(-c("Year", "WkNo"))
+tslm_tbl <- tslm_ts %>% as_tsibble(index = Date) %>% fill_gaps(.full = TRUE) %>% fill(colnames(tslm_ts))
+
 
 # Define server logic required to draw a histogram
 function(input, output, session) {
@@ -733,8 +736,271 @@ function(input, output, session) {
       
     })
     
+  })
+  
+  # tslm avp ----
+  output$tslm_avp <- renderPlot({
+    
+    if (input$tslmTuneButton == 0) return()
+    
+    isolate({
+      
+      # slice dates
+      tslm_slice <- tslm_tbl %>% dplyr::filter(Date >= input$periodRangeTslm[1] &
+                                               Date <= input$periodRangeTslm[2])
+      
+      # Parse inputs
+      v <- "Cases"
+      
+      if (input$tslmRadioCasesInput == "None") {v <- v} 
+      else if (input$tslmRadioCasesInput == "Log") {v <- paste0("log_",v)} 
+      else if (input$tslmRadioCasesInput == "MinMax") {v <- paste0("mm_",v)} 
+      else if (input$tslmRadioCasesInput == "Z") {v <- paste0("z_",v)}
+      if (input$tslmDiffCasesInput > 0) {v <- paste0("diff",input$tslmDiffCasesInput,"_",v)}
+      
+      v1 <- v
+      j = ""
+      
+      # Mega if else loop to conjure string input for VAR model formula
+      # Sorry cant think of a better way...
+      for (s in input$checkBoxTslm) {
+        if (s == "avg_rainfall") {
+          if (input$tslmRadioAvgRainfallInput == "None") {s <- s} 
+          else if (input$tslmRadioAvgRainfallInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioAvgRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioAvgRainfallInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffAvgRainfallInput > 0) {s <- paste0("diff",input$tslmDiffAvgRainfallInput,"_",s)}
+        }
+        if (s == "tot_rainfall") {
+          if (input$tslmRadioTotRainfallInput == "None") {s <- s} 
+          else if (input$tslmRadioTotRainfallInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioTotRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioTotRainfallInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffTotRainfallInput > 0) {s <- paste0("diff",input$tslmDiffTotRainfallInput,"_",s)}
+        }
+        if (s == "max_30m_rainfall") {
+          if (input$tslmRadioMax30mRainfallInput == "None") {s <- s} 
+          else if (input$tslmRadioMax30mRainfallInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioMax30mRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioMax30mRainfallInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffMax30mRainfallInput > 0) {s <- paste0("diff",input$tslmDiffMax30mRainfallInput,"_",s)}
+        }
+        if (s == "max_60m_rainfall") {
+          if (input$tslmRadioMax60mRainfallInput == "None") {s <- s} 
+          else if (input$tslmRadioMax60mRainfallInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioMax60mRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioMax60mRainfallInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffMax60mRainfallInput > 0) {s <- paste0("diff",input$tslmDiffMax60mRainfallInput,"_",s)}
+        }
+        if (s == "max_120m_rainfall") {
+          if (input$tslmRadioMax120mRainfallInput == "None") {s <- s} 
+          else if (input$tslmRadioMax120mRainfallInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioMax120mRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioMax120mRainfallInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffMax120mRainfallInput > 0) {s <- paste0("diff",input$tslmDiffMax120mRainfallInput,"_",s)}
+        }
+        if (s == "avg_temp") {
+          if (input$tslmRadioAvgTempInput == "None") {s <- s} 
+          else if (input$tslmRadioAvgTempInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioAvgTempInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioAvgTempInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffAvgTempInput > 0) {s <- paste0("diff",input$tslmDiffAvgTempInput,"_",s)}
+        }
+        if (s == "max_temp") {
+          if (input$tslmRadioMaxTempInput == "None") {s <- s} 
+          else if (input$tslmRadioMaxTempInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioMaxTempInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioMaxTempInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffMaxTempInput > 0) {s <- paste0("diff",input$tslmDiffMaxTempInput,"_",s)}
+        }
+        if (s == "min_temp") {
+          if (input$tslmRadioMinTempInput == "None") {s <- s} 
+          else if (input$tslmRadioMinTempInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioMinTempInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioMinTempInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffMinTempInput > 0) {s <- paste0("diff",input$tslmDiffMinTempInput,"_",s)}
+        }
+        if (s == "avg_wind") {
+          if (input$tslmRadioAvgWindInput == "None") {s <- s} 
+          else if (input$tslmRadioAvgWindInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioAvgWindInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioAvgWindInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffAvgWindInput > 0) {s <- paste0("diff",input$tslmDiffAvgWindInput,"_",s)}
+        }
+        if (s == "max_wind") {
+          if (input$tslmRadioMaxWindInput == "None") {s <- s} 
+          else if (input$tslmRadioMaxWindInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioMaxWindInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioMaxWindInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffMaxWindInput > 0) {s <- paste0("diff",input$tslmDiffMaxWindInput,"_",s)}
+        }
+        if (j == "") {
+          j <- s
+        } else {
+          j <- paste0(j,"+",s)
+        }
+      }
+      
+      if (j != "") {
+        
+        # tslm model
+        tslm_mdl <- tslm_slice %>%
+          model(TSLM(as.formula(paste0(v," ~ ",j))))
+
+        # find fit
+        tslm_fitted <- fitted(tslm_mdl)[,2:3] %>% 
+          as_tibble() 
+        
+        colnames(tslm_fitted) <- c("Date", v1)
+        
+        # define types
+        tslm_fitted$Type <- "Fit"
+        tslm_slice$Type <- "Observed"
+        tslm_avp <- dplyr::bind_rows(tslm_fitted, tslm_slice)
+        
+        # plot
+        ggplot(data = tslm_avp) +
+          geom_line(aes(x = Date, y = .data[[v1]], colour = Type)) +
+          ggtitle("Observed vs Fitted")
+        
+      } else {
+        
+        df_a <- data.frame(Date=tslm_slice$Date, Cases=NA, Type="Fitted")
+        df_b <- data.frame(Date=tslm_slice$Date, Cases=tslm_slice$Cases, Type="Observed")
+        df_c <- dplyr::bind_rows(df_a, df_b)
+        
+        ggplot(data = df_c) +
+          geom_line(aes(x = Date, y = Cases, colour = Type)) +
+          ggtitle("Observed vs Fitted")
+      }
+      
+    })
     
   })
+  
+  # tslm met ----
+  output$tslm_met <- renderTable({
+    
+    if (input$tslmTuneButton == 0) return()
+    
+    isolate({
+      
+      # slice dates
+      tslm_slice <- tslm_tbl %>% dplyr::filter(Date >= input$periodRangeTslm[1] &
+                                                 Date <= input$periodRangeTslm[2])
+      
+      # Parse inputs
+      v <- "Cases"
+      
+      if (input$tslmRadioCasesInput == "None") {v <- v} 
+      else if (input$tslmRadioCasesInput == "Log") {v <- paste0("log_",v)} 
+      else if (input$tslmRadioCasesInput == "MinMax") {v <- paste0("mm_",v)} 
+      else if (input$tslmRadioCasesInput == "Z") {v <- paste0("z_",v)}
+      if (input$tslmDiffCasesInput > 0) {v <- paste0("diff",input$tslmDiffCasesInput,"_",v)}
+      
+      v1 <- v
+      j = ""
+      
+      # Mega if else loop to conjure string input for VAR model formula
+      # Sorry cant think of a better way...
+      for (s in input$checkBoxTslm) {
+        if (s == "avg_rainfall") {
+          if (input$tslmRadioAvgRainfallInput == "None") {s <- s} 
+          else if (input$tslmRadioAvgRainfallInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioAvgRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioAvgRainfallInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffAvgRainfallInput > 0) {s <- paste0("diff",input$tslmDiffAvgRainfallInput,"_",s)}
+        }
+        if (s == "tot_rainfall") {
+          if (input$tslmRadioTotRainfallInput == "None") {s <- s} 
+          else if (input$tslmRadioTotRainfallInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioTotRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioTotRainfallInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffTotRainfallInput > 0) {s <- paste0("diff",input$tslmDiffTotRainfallInput,"_",s)}
+        }
+        if (s == "max_30m_rainfall") {
+          if (input$tslmRadioMax30mRainfallInput == "None") {s <- s} 
+          else if (input$tslmRadioMax30mRainfallInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioMax30mRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioMax30mRainfallInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffMax30mRainfallInput > 0) {s <- paste0("diff",input$tslmDiffMax30mRainfallInput,"_",s)}
+        }
+        if (s == "max_60m_rainfall") {
+          if (input$tslmRadioMax60mRainfallInput == "None") {s <- s} 
+          else if (input$tslmRadioMax60mRainfallInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioMax60mRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioMax60mRainfallInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffMax60mRainfallInput > 0) {s <- paste0("diff",input$tslmDiffMax60mRainfallInput,"_",s)}
+        }
+        if (s == "max_120m_rainfall") {
+          if (input$tslmRadioMax120mRainfallInput == "None") {s <- s} 
+          else if (input$tslmRadioMax120mRainfallInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioMax120mRainfallInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioMax120mRainfallInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffMax120mRainfallInput > 0) {s <- paste0("diff",input$tslmDiffMax120mRainfallInput,"_",s)}
+        }
+        if (s == "avg_temp") {
+          if (input$tslmRadioAvgTempInput == "None") {s <- s} 
+          else if (input$tslmRadioAvgTempInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioAvgTempInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioAvgTempInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffAvgTempInput > 0) {s <- paste0("diff",input$tslmDiffAvgTempInput,"_",s)}
+        }
+        if (s == "max_temp") {
+          if (input$tslmRadioMaxTempInput == "None") {s <- s} 
+          else if (input$tslmRadioMaxTempInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioMaxTempInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioMaxTempInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffMaxTempInput > 0) {s <- paste0("diff",input$tslmDiffMaxTempInput,"_",s)}
+        }
+        if (s == "min_temp") {
+          if (input$tslmRadioMinTempInput == "None") {s <- s} 
+          else if (input$tslmRadioMinTempInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioMinTempInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioMinTempInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffMinTempInput > 0) {s <- paste0("diff",input$tslmDiffMinTempInput,"_",s)}
+        }
+        if (s == "avg_wind") {
+          if (input$tslmRadioAvgWindInput == "None") {s <- s} 
+          else if (input$tslmRadioAvgWindInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioAvgWindInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioAvgWindInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffAvgWindInput > 0) {s <- paste0("diff",input$tslmDiffAvgWindInput,"_",s)}
+        }
+        if (s == "max_wind") {
+          if (input$tslmRadioMaxWindInput == "None") {s <- s} 
+          else if (input$tslmRadioMaxWindInput == "Log") {s <- paste0("log_",s)} 
+          else if (input$tslmRadioMaxWindInput == "MinMax") {s <- paste0("mm_",s)} 
+          else if (input$tslmRadioMaxWindInput == "Z") {s <- paste0("z_",s)}
+          if (input$tslmDiffMaxWindInput > 0) {s <- paste0("diff",input$tslmDiffMaxWindInput,"_",s)}
+        }
+        if (j == "") {
+          j <- s
+        } else {
+          j <- paste0(j,"+",s)
+        }
+      }
+      
+      # tslm model
+      tslm_cv_metrics <- tslm_slice %>%
+        model(TSLM(as.formula(paste0(v," ~ ",j)))) %>% accuracy()
+      
+      if (length(input$checkBoxVar) == 0) {
+        return(tslm_cv_metrics[c("RMSE","MAE","MAPE")])
+      } else {
+        return(tslm_cv_metrics[c("RMSE","MAE","MAPE")])
+      }
+      
+    })
+    
+  },
+  hover = TRUE,
+  bordered = TRUE,
+  striped = TRUE,
+  width = "100%",
+  align = "c",
+  caption = "<h4>Model Metrics</h4>",
+  caption.placement = getOption("xtable.caption.placement", "top"))
   
   # arima rdl ----
   output$arima_rdl <- renderPlot({
