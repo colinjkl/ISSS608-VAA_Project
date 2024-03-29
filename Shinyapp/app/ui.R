@@ -16,13 +16,12 @@ pacman::p_load(
   tsibble,
   feasts,
   patchwork,
-  plotly,
   ggstatsplot,
   MLmetrics,
   performance,
   caret,
-  ggstatsplot,
-  ggiraph, 
+  qqplotr,
+  lubridate,
   ggthemes, 
   sf, 
   terra, 
@@ -31,7 +30,8 @@ pacman::p_load(
   tmap, 
   viridis, 
   zoo,
-  rstantools
+  rstantools,
+  urca
 )
 
 climate_data <- read_csv("data/clean_climate_data.csv")
@@ -1242,7 +1242,8 @@ fluidPage(
                        )
                      )
                    ),
-                   div(actionButton("arimaTuneButton", "Tune"), style = "float:right")
+                   div(actionButton("arimaTuneButton", "Tune"), style = "float:right"),
+                   div(actionButton("arimaAutoButton", "Auto"), style = "float:right")
                  )
                ),
                
@@ -1490,7 +1491,8 @@ fluidPage(
                    )
                  ),
                  fluidRow(
-                   div(actionButton("etsTuneButton", "Tune"), style = "float:right")
+                   div(actionButton("etsTuneButton", "Tune"), style = "float:right"),
+                   div(actionButton("etsAutoButton", "Auto"), style = "float:right")
                  )
                ),
                

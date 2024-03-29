@@ -14,13 +14,12 @@ pacman::p_load(
   tsibble,
   feasts,
   patchwork,
-  plotly,
   ggstatsplot,
   MLmetrics,
   performance,
   caret,
-  ggstatsplot,
-  ggiraph, 
+  qqplotr,
+  lubridate,
   ggthemes, 
   sf, 
   terra, 
@@ -29,7 +28,8 @@ pacman::p_load(
   tmap, 
   viridis, 
   zoo,
-  rstantools
+  rstantools,
+  urca
 )
 
 stations <- read_csv("data/RainfallStation.csv")
@@ -890,7 +890,7 @@ function(input, output, session) {
         summ <- summary(lm_mdl)
         
         # find MAPE
-        mape <- MAPE(y_pred = lm_mdl$fitted.values, y_true = df_slice$Cases)
+        mape <- MAPE(y_pred = lm_mdl$fitted.values, y_true = df_slice[[v]])
         
         data.frame("Adjusted R^2" = summ$adj.r.squared,
                    "F-Statistics" = summ$fstatistic[[1]],
@@ -2014,6 +2014,43 @@ function(input, output, session) {
   caption = "<h4>Model Estimates</h4>",
   caption.placement = getOption("xtable.caption.placement", "top"))
   
+  # arima auto ----
+  observe({
+    
+    req(input$arimaAutoButton)
+    
+    isolate({
+      
+      # slice dates
+      arima_slice <- arima_tbl %>% dplyr::filter(Date >= input$periodRange[1] &
+                                                   Date <= input$periodRange[2])
+      
+      # tuned arima model
+      arima_mdl <- arima_slice %>% 
+        model(ARIMA(Cases))
+      
+      # Extract params
+      a <- capture.output(report(arima_mdl))
+      c <- ""
+      for (b in a) {
+        c <- paste0(c,b,"\n")
+      }
+      params <- gsub("[\\(\\)]", "", regmatches(c, gregexpr("\\(.*?\\)", c))[[1]])
+      params <- as.list(strsplit(params, ',')[[1]])
+      
+      para1 <- params[[1]]
+      para2 <- params[[2]]
+      para3 <- params[[3]]
+      
+      # Update inputs
+      updateNumericInput(session, "pInput", value = as.numeric(para1))
+      updateNumericInput(session, "dInput", value = as.numeric(para2))
+      updateNumericInput(session, "qInput", value = as.numeric(para3))
+      
+    })
+    
+  })
+  
   # arima rdl ----
   output$arima_rdl <- renderPlot({
     
@@ -2168,6 +2205,83 @@ function(input, output, session) {
   options = list(
     pageLength = 10
   ))
+  
+  # ets auto ----
+  observe({
+    
+    req(input$etsAutoButton)
+    
+    isolate({
+      
+      # slice dates
+      ets_slice <- ets_tbl %>% dplyr::filter(Date >= input$periodRangeEts[1] &
+                                               Date <= input$periodRangeEts[2])
+      
+      # tuned ets model
+      ets_mdl <- ets_slice %>%
+        model(ETS(Cases))
+      
+      # Extract params
+      a <- capture.output(report(ets_mdl))
+      para1 <- ""
+      para2 <- ""
+      para3 <- ""
+      c <- ""
+      for (b in a) {
+        if (grepl("alpha", b)) {
+          para1 <- as.list(strsplit(b, ' = ')[[1]])
+          para1 <- trimws(para1[[2]])
+        }
+        if (grepl("beta", b)) {
+          para2 <- as.list(strsplit(b, ' = ')[[1]])
+          para2 <- trimws(para2[[2]])
+        }
+        if (grepl("gamma", b)) {
+          para3 <- as.list(strsplit(b, ' = ')[[1]])
+          para3 <- trimws(para3[[2]])
+        }
+        c <- paste0(c,b,"\n")
+      }
+      params <- gsub("[\\(\\)]", "", regmatches(c, gregexpr("\\(.*?\\)", c))[[1]])
+      params <- as.list(strsplit(params, ',')[[1]])
+      para4 <- params[[1]]
+      para5 <- params[[2]]
+      para6 <- params[[3]]
+      
+      # Update inputs
+      if (para4 == "M") {
+        updateSelectInput(session, "eInput", selected = "M")
+        updateNumericInput(session, "trendAlphaEts", value = as.numeric(para1))
+      } else if (para4 == "A") {
+        updateSelectInput(session, "eInput", selected = "A")
+        updateNumericInput(session, "trendAlphaEts", value = as.numeric(para1))
+      }
+      
+      if (para5 == "M") {
+        updateSelectInput(session, "tInput", selected = "M")
+        updateNumericInput(session, "trendBetaEts", value = as.numeric(para2))
+      } else if (para5 == "A") {
+        updateSelectInput(session, "tInput", selected = "A")
+        updateNumericInput(session, "trendBetaEts", value = as.numeric(para2))
+      } else {
+        updateSelectInput(session, "tInput", selected = "N")
+        updateNumericInput(session, "trendBetaEts", value = 0)
+      }
+
+      if (para6 == "M") {
+        updateSelectInput(session, "sInput", selected = "M")
+        updateNumericInput(session, "seasonGammaEts", value = as.numeric(para3))
+      } else if (para6 == "A") {
+        updateSelectInput(session, "sInput", selected = "A")
+        updateNumericInput(session, "seasonGammaEts", value = as.numeric(para3))
+      } else {
+        updateSelectInput(session, "sInput", selected = "N")
+        updateNumericInput(session, "seasonGammaEts", value = 0)
+      }
+      
+    })
+    
+  })
   
   # ets avp ----
   output$ets_avp <- renderPlot({

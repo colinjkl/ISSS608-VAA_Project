@@ -20,73 +20,50 @@ pacman::p_load(
   feasts,
   patchwork,
   plotly,
-  ggstatsplot
+  ggstatsplot,
+  fabletools
 )
 ```
 
 # Data Import
 
 ```{r}
-df <- read_csv("data/dengue_climate_joined_by_week_transformed.csv")
+df <- read_csv("data/dengue_climate_joined_by_week_transformed_diff.csv")
 ```
-
-# Data Wrangling
-
-```{r}
-df$Date <- lubridate::ymd(lubridate::parse_date_time(paste(df$Year, df$WkNo, 1, sep="/"),'Y/W/w'))
-```
-
-```{r}
-df2 <- df
-
-for (i in 1:4) {
-  for (n in colnames(df)) {
-    if (n %in% c("Year", "WkNo", "Date")) {
-      next
-    } else {
-      df2[paste0("diff",i,"_",n)] <- difference(df[n][[1]],i)
-    }
-  }
-}
-```
-
-```{r}
-write_csv(df2, "data/dengue_climate_joined_by_week_transformed_diff.csv")
-```
-
-# Univariate
 
 ## ARIMA
 
 ### Data Preparation
 
 ```{r}
-arima_ts <-  df %>% dplyr::select(Date, Cases)
-arima_tbl <- arima_ts %>% as_tsibble(index = Date) %>% fill_gaps(.full = TRUE) %>% fill(Cases)
-```
-
-```{r}
-start_date <- arima_tbl$Date[34]
-```
-
-```{r}
-arima_sliced <- arima_tbl %>% dplyr::filter(Date > "2020-01-01" &
-                                              Date < "2020-10-01" )
-```
-
-```{r}
-round(0.5*nrow(arima_sliced))
+arima_ts <-  df %>% dplyr::select(Date, log_Cases)
+arima_tbl <- arima_ts %>% as_tsibble(index = Date) %>% fill_gaps(.full = TRUE) %>% fill(log_Cases)
 ```
 
 ### Model
 
 ```{r}
 arima_mdl <- arima_tbl %>% 
-  model(ARIMA(Cases))
+  model('arima' = ARIMA(Cases))
 ```
+
+### Residual
 
 ```{r}
 arima_mdl %>% gg_tsresiduals()
+```
+
+### Extracting params
+
+```{r}
+a <- capture.output(report(arima_mdl))
+c <- ""
+for (b in a) {
+  c <- paste0(c,b,"\n")
+}
+params <- gsub("[\\(\\)]", "", regmatches(c, gregexpr("\\(.*?\\)", c))[[1]])
+params <- as.list(strsplit(params, ',')[[1]])
+params[[2]]
 ```
 
 ### Autocorrelation
@@ -173,24 +150,35 @@ ets_mdl <- ets_tbl %>%
 report(ets_mdl)
 ```
 
-```{r}
-ets_mdl <- ets_tbl %>%
-  model(ETS(Cases))
-
-report(ets_mdl)
-
-ets_mdl %>%
-  forecast(h = 26) %>%
-  autoplot(ets_tbl)
-```
+### Extracting Params
 
 ```{r}
 a <- capture.output(report(ets_mdl))
+para1 <- ""
+para2 <- ""
+para3 <- ""
 c <- ""
 for (b in a) {
+  if (grepl("alpha", b)) {
+    para1 <- as.list(strsplit(b, ' = ')[[1]])
+    para1 <- trimws(para1[[2]])
+  }
+  if (grepl("beta", b)) {
+    para2 <- as.list(strsplit(b, ' = ')[[1]])
+    para2 <- trimws(para2[[2]])
+  }
+  if (grepl("gamma", b)) {
+    para3 <- as.list(strsplit(b, ' = ')[[1]])
+    para3 <- trimws(para3[[2]])
+  }
   c <- paste0(c,b,"\n")
 }
-cat(c)
+params <- gsub("[\\(\\)]", "", regmatches(c, gregexpr("\\(.*?\\)", c))[[1]])
+params <- as.list(strsplit(params, ',')[[1]])
+para4 <- params[[1]]
+para5 <- params[[2]]
+para6 <- params[[3]]
+
 ```
 
 ### Decomposition
@@ -271,6 +259,8 @@ var_mdl <- var_tbl %>%
     aicc = VAR(vars(Cases, avg_mean_temp, avg_daily_rainfall), ic="aicc")
   )
 ```
+
+### Formula construction
 
 ```{r}
 i <- c("avg_temp")
@@ -378,8 +368,6 @@ ci$`80%`[[v]]$lower
 ```
 
 ```{r}
-
-
 ggplot(data = var_plot, aes(x=Date, y=.data[[v]] ,colour=Type)) + 
   geom_line() +
   geom_ribbon(aes(ymin=lwr80, ymax=upr80), alpha=0.2, linetype=0, fill="blue") +
@@ -388,18 +376,8 @@ ggplot(data = var_plot, aes(x=Date, y=.data[[v]] ,colour=Type)) +
   ggtitle(paste0("Forecast ",v," for next n periods"))
 ```
 
+### Coeffs
+
 ```{r}
 ggcoefstats(var_mdl %>% broom::tidy())
-```
-
-```{r}
-var_mdl <- var_tbl %>%
-  model(
-    aicc = VAR(vars(Cases), ic="aicc")
-  )
-
-fc <- var_mdl %>% 
-  forecast(h = 26)
-
-fc$.mean
 ```
