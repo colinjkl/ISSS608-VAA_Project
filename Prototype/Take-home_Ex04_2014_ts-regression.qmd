@@ -56,12 +56,12 @@ tslm_mdl |>
 ```
 
 ```{r}
-gg_tsresiduals(ts_log_m1)
+gg_tsresiduals(tslm_mdl)
 
 ```
 
 ```{r}
-augment(ts_log_m1) %>%
+augment(tslm_mdl) %>%
   ggplot(aes(x = .fitted, y = .resid)) +
   geom_point() +
   labs(title = "Relationship between residuals and fitted values.",
@@ -72,29 +72,29 @@ augment(ts_log_m1) %>%
 ```
 
 ```{r}
-ggcoefstats(ts_log_m1 %>% tidy(), 
+ggcoefstats(tslm_mdl %>% tidy(), 
             output = "plot")
 
 ```
 
 ```{r}
-ts_log_m1 %>% tidy()
+tslm_mdl %>% tidy()
 ```
 
 ```{r}
-var_fitted <- fitted(ts_log_m1)[,2:3] %>% 
+var_fitted <- fitted(tslm_mdl)[,2:3] %>% 
   as_tibble() #%>% 
   #rename(Cases=.fitted)
 
 var_fitted$Type <- "Fit"
 
-dengue_weather_tsreg$Type <- "Observed"
+tslm_slice$Type <- "Observed"
 
-var_avp <- dplyr::bind_rows(var_fitted, dengue_weather_tsreg)
+var_avp <- dplyr::bind_rows(var_fitted, tslm_slice)
 
 
 ggplot(data = var_avp) +
-  geom_line(aes(x = Week, y = Cases, colour = Type)) +
+  geom_line(aes(x = Date, y = Cases, colour = Type)) +
   ggtitle("Observed vs Fitted")
 
 ```

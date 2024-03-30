@@ -17,6 +17,8 @@ climate_data <- read_csv("data/clean_climate_data.csv")
 ### 3 Oneway ANOVA Test
 
 ```{r}
+#| eval: false
+
 #Inputs for prototyping
 input_station <- "Changi"
 input_msmt <- "mean_temp"
@@ -49,6 +51,8 @@ ggbetweenstats(
 ### 4 Spatial Interpolation
 
 ```{r}
+#| eval: false
+
 #Importing the station data
 stations <- read_csv("data/aspatial/RainfallStation.csv")
 
@@ -91,6 +95,8 @@ mpsz2019 <- st_read(dsn = "data/geospatial", layer = "MPSZ-2019")%>%
 **Inverse Distance Weighted**
 
 ```{r}
+#| eval: false
+
 #Inputs for prototyping
 input_nmax <- 3
 
@@ -132,12 +138,16 @@ tm_shape(pred) +
 **Kriging**
 
 ```{r}
+#| eval: false
+
 v <- variogram(year_agg ~ 1, 
                data = rfdata_sf)
 plot(v)
 ```
 
 ```{r}
+#| eval: false
+
 #Inputs for prototyping
 input_model <- "Sph"
 input_psill <- 0.5
@@ -192,6 +202,8 @@ The user select all required values from the first panel and click on the button
 ### 5 Correlation
 
 ```{r}
+#| eval: false
+
 #Inputs for prototyping
 input1 <- "mean_temp"
 input2 <- "daily_rainfall"

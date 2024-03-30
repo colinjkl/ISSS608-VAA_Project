@@ -4,9 +4,12 @@ page-layout: custom
 listing: 
   id: sample-listings
   contents: 
+    - "Meeting_Minute/Meeting_Minute.qmd"
     - "Proposal/Proposal.qmd"
-    - "Shinyapp/Shinyapp.qmd"
+    - "Prototype/Prototype.qmd"
     - "Poster/Poster.qmd"
+    - "Shinyapp/Shinyapp.qmd"
+    - "User_Manual/User_Manual.qmd"
   type: grid
   
 section-titles: false
@@ -19,13 +22,17 @@ freeze: true
 #  {#banner .block}
 
 ::: block
-<h1>Be Weatherwise <br> or Otherwise!</h1>
+<h1>Analysis of Climate Impact on<br>Dengue Cases</h1>
 
-How well do we understand our weather in Singapore?
+National Climate Change Secretariat (NCCS) of Singapore reported that<br>
 
-Should we be expecting more rain or shine? Let's find out!
+-   Annual mean temperature in Singapore has increased from [26.9°C to 28.0°C]{style="font-size: 20px; color: #FFF3CD"} from 1980 to 2020
 
-<br>
+-   Annual total rainfall in Singapore has increased at [an average rate of 67mm per decade]{style="font-size: 20px; color: #FFF3CD"} from 1980 to 2019
+
+The climate changes has affected the public health in Singapore such as [more dengue cases are reported during warmer periods]{style="font-weight: 700; font-size: 20px; color: #FFF3CD"} of the year.
+
+[Click the link below to find out more details.]{style="font-size: 13px"}
 
 <a href="https://www.nccs.gov.sg/singapores-climate-action/impact-of-climate-change-in-singapore/"><button>Find out more</button></a>
 :::
@@ -37,11 +44,23 @@ Should we be expecting more rain or shine? Let's find out!
 
 <br>
 
-some intro stuff some intro stuff some intro stuff some intro stuff some intro stuff some intro stuff some intro stuff
+Dengue fever, a disease caused by the dengue virus which is transmitted to humans via the bite of an infective mosquito, poses a significant public health concern in many parts of the world, particularly in regions with tropical and subtropical climates. The incidence of dengue has been steadily rising, presenting a complex challenge to healthcare systems and communities worldwide.
 
-some intro stuff some intro stuff some intro stuff some intro stuff some intro stuff some intro stuff some intro stuff
+This project delves into the relationship between dengue fever and environmental conditions, aiming to：
 
-some intro stuff some intro stuff some intro stuff some intro stuff some intro stuff some intro stuff some intro stuff
+::: grid_block
+::: {.col-xs-6 .col-sm-6 .col-md-6 .col-lg-6}
+![](images/clipboard-2806334986.png){fig-align="center" width="64"}
+
+Uncover the climate factors that influence the dengue cases
+:::
+
+::: {.col-xs-6 .col-sm-6 .col-md-6 .col-lg-6}
+![](images/clipboard-443178212.png){fig-align="center" width="64"}
+
+Forecast the future dengue cases
+:::
+:::
 :::
 
 #  {#figures .block}

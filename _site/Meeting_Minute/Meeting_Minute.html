@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>ISSS608 VAA - Project Group 3 - Poster</title>
+<title>ISSS608 VAA - Project Group 3 - Project Meeting Minutes</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -93,7 +93,7 @@ ul.task-list li input[type="checkbox"] {
  <span class="menu-text">At a Glance</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link active" href="../Poster/Poster.html" rel="" target="" aria-current="page">
+    <a class="nav-link" href="../Poster/Poster.html" rel="" target="">
  <span class="menu-text">Poster</span></a>
   </li>  
   <li class="nav-item">
@@ -101,8 +101,12 @@ ul.task-list li input[type="checkbox"] {
  <span class="menu-text">Shiny APP</span></a>
   </li>  
   <li class="nav-item">
+    <a class="nav-link" href="../User_Manual/User_Manual.html" rel="" target="">
+ <span class="menu-text">User Manual</span></a>
+  </li>  
+  <li class="nav-item">
     <a class="nav-link" href="../index.html#storyboard" rel="" target="">
- <span class="menu-text">Work Gallery</span></a>
+ <span class="menu-text">Our Works</span></a>
   </li>  
 </ul>
             <div class="quarto-navbar-tools">
@@ -121,7 +125,7 @@ ul.task-list li input[type="checkbox"] {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Poster</h1>
+<h1 class="title">Project Meeting Minutes</h1>
 </div>
 
 
@@ -138,12 +142,300 @@ ul.task-list li input[type="checkbox"] {
 
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="..\images/bugcat wip.gif" class="img-fluid figure-img"></p>
-<figcaption class="figure-caption">Sorry! Still Work in Progress</figcaption>
+<p><img src="images/MM_title.png" class="img-fluid figure-img" width="1868"></p>
 </figure>
 </div>
+<p>This document records the minutes of our project meetings.</p>
+<p><strong>Project Member</strong>:</p>
+<ul>
+<li>CI Hui</li>
+<li>Colin JIANG Kelin</li>
+<li>SUN Yiping</li>
+</ul>
+<section id="meeting-01" class="level2">
+<h2 data-anchor-id="meeting-01">2024-02-07 Meeting 01</h2>
+<p><strong>Date</strong>: 07 Feb 2024, 7:30pm</p>
+<p><strong>Present</strong>:</p>
+<ul>
+<li>Colin</li>
+<li>Yiping</li>
+<li>Ci Hui</li>
+</ul>
+<p><strong>Absent</strong>:</p>
+<ul>
+<li>None</li>
+</ul>
+<section id="agenda" class="level3">
+<h3 data-anchor-id="agenda">Agenda</h3>
+<ol type="1">
+<li>Discuss project idea</li>
+<li>Roles allocation</li>
+<li>Determine timeline</li>
+</ol>
+</section>
+<section id="project-idea" class="level3">
+<h3 data-anchor-id="project-idea">Project Idea</h3>
+<p>Colin and Yiping suggested going with weather data provided by Prof Kam earlier in class. Below are some of the aspects that can be explored with that dataset.</p>
+<p><strong>Singapore Climate</strong></p>
+<p>Data: Meteorological Service Singapore daily weather data</p>
+<p>EDA:</p>
+<ul>
+<li>Visualize changes in weather conditions in Singapore over past few years.</li>
+<li>Visualize factors contributing to climate change (need more data for other sources)</li>
+<li>Visualize impacts of climate change (need more data for other sources)</li>
+</ul>
+<p>Rshiny:</p>
+<ul>
+<li>Forecast temperature/rainfall with time-series analysis</li>
+<li>Predict temperature using attribution modelling or other machine learning techniques like random forest/gradient boosting</li>
+</ul>
+<p><strong>HDB Pricing</strong></p>
+<p>Data: HDB, Singstats</p>
+<p>EDA:</p>
+<ul>
+<li>Visualize historical patterns in HDB prices</li>
+<li>Visualize differences in prices by region and time</li>
+</ul>
+<p>Rshiny:</p>
+<ul>
+<li>Predict prices of HDB given some known factors</li>
+</ul>
+<p>All 3 agreed to go with weather data for our project. The actual scope will be decided in later meetings. We will start the following 2 in proposal and add/remove after consult with prof.</p>
+<p>EDA: Visualize changes in weather conditions in Singapore over past few years by region and time</p>
+<p>Rshiny: Forecast temperature/rainfall with time-series analysis</p>
+</section>
+<section id="roles-allocation" class="level3">
+<h3 data-anchor-id="roles-allocation">Roles Allocation</h3>
+<p>Colin will start early with web layout. More time is needed here as we are all beginners at html/css/js. Also will create git repo and host on Netlify.</p>
+<p>Ci Hui and Yiping will work on drafting the proposal for submission on 11 Feb.&nbsp;We aim to finish by 9th Feb so that we can enjoy our CNY break.</p>
+<p>Proposal will be shared in teams shared folder where multiple users can edit the .doc at the same time instead of editing in .qmd which requires multiple branching, pulling and pushing on Git. Once done, it will be copied over to a .qmd file by colin who will push the final proposal to origin.</p>
+</section>
+<section id="timeline" class="level3">
+<h3 data-anchor-id="timeline">Timeline</h3>
+<p>We discussed about the timeline using an excel sheet. Here is the final screenshot:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/MM01_timeline.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</section>
+<section id="agenda-for-next-meeting" class="level3">
+<h3 data-anchor-id="agenda-for-next-meeting">Agenda for next meeting</h3>
+<ul>
+<li>Finalize project idea (should be after prof consult)</li>
+<li>Models to deploy on Shiny App (by now, we should all have finish Shiny app tutorials)</li>
+<li>Website layout improvements</li>
+</ul>
+</section>
+<section id="adjournment" class="level3">
+<h3 data-anchor-id="adjournment">Adjournment</h3>
+<p>Meeting ended at 8:10pm. Next meeting on 13th February, 8:00pm (Tentative) online.</p>
+</section>
+</section>
+<section id="meeting-02" class="level2">
+<h2 data-anchor-id="meeting-02">2024-02-20 Meeting 02</h2>
+<p><strong>Date</strong>: 20 Feb 2024, 11:00am</p>
+<p><strong>Present</strong>:</p>
+<ul>
+<li>Colin</li>
+<li>Yiping</li>
+<li>Prof Kam</li>
+</ul>
+<p><strong>Absent</strong>:</p>
+<ul>
+<li>Ci Hui</li>
+</ul>
+<section id="agenda-1" class="level3">
+<h3 data-anchor-id="agenda-1">Agenda</h3>
+<ul>
+<li>Finalize project idea (should be after prof consult)</li>
+<li>Feedback on proposal</li>
+<li>Other advice</li>
+</ul>
+</section>
+<section id="finalize-project-ideas" class="level3">
+<h3 data-anchor-id="finalize-project-ideas">Finalize Project Ideas</h3>
+<p>We decided to go with the visualization of Singapore’s weather on Dengue cases.</p>
+<p><strong>Time Series Econometric model</strong></p>
+<ul>
+<li><p>Prof has approved our approach to use time series econometric model to forecast the future temperature. In the real-world application, the researchers would also use satellite image data to forecast the future weather. However, this requires additional data and specific knowledge to interpret the satellite images. Hence, we’ll keep the project scope simple by just using the data downloaded from the website.</p></li>
+<li><p>Meanwhile, prof has reminded us to check the data source carefully before downloading.</p></li>
+</ul>
+<p><strong>Correlation Study between Weather and Dengue Cases</strong></p>
+<ul>
+<li><p>As dengue clusters are often isolated to regions with outbreaks, Prof had advised that we look at dengue cases on a national and weekly level. Climate data used will hence also be at the national level, aggregated across all regions in Singapore.</p></li>
+<li><p>In addition, prof suggested that we can use an explanatory model to study the impact of temperature and rainfall on dengue cases. For example, would dengue cases increase when rainfall increases?</p></li>
+</ul>
+</section>
+<section id="feedback-on-proposal" class="level3">
+<h3 data-anchor-id="feedback-on-proposal">Feedback on Proposal</h3>
+<p><strong>CDA</strong></p>
+<ul>
+<li>Our idea of CDA in the proposal is incorrect. MAPE and RMSE are measures to check accuracy of model, and are not what CDA is about.</li>
+</ul>
+<p><strong>Dashboard in ShinyApp</strong></p>
+<ul>
+<li>This is not the focus of the ShinyApp. ShinyApp should focus more on Applications.</li>
+</ul>
+</section>
+<section id="other-advice" class="level3">
+<h3 data-anchor-id="other-advice">Other advice</h3>
+<ul>
+<li><p>Prof also shared another potential project idea which is to calibrate a model to interpolate the rainfall at the area without rainfall station. There are a total of 27 rainfall stations in Singapore, but it’s challenging to predict the rainfall at the area outside the rainfall station’s coverage.</p></li>
+<li><p>However, this requires the knowledge of geospatial interpolation. Hence, we’ll not go into this area for this project</p></li>
+</ul>
+</section>
+<section id="agenda-for-next-meeting-1" class="level3">
+<h3 data-anchor-id="agenda-for-next-meeting-1">Agenda for next meeting</h3>
+<ul>
+<li>Data preparations</li>
+<li>Model finalization</li>
+</ul>
+</section>
+<section id="adjournment-1" class="level3">
+<h3 data-anchor-id="adjournment-1">Adjournment</h3>
+<p>Meeting ended at 11:40am. Next meeting on 24th February, 4:00pm (Tentative) after class.</p>
+</section>
+</section>
+<section id="meeting-03" class="level2">
+<h2 data-anchor-id="meeting-03">2024-03-09 Meeting 03</h2>
+<p><strong>Date</strong>: 9 Mar 2024, 3:40pm</p>
+<p><strong>Present</strong>:</p>
+<ul>
+<li>Colin</li>
+<li>Yiping</li>
+<li>Ci Hui</li>
+</ul>
+<p><strong>Absent</strong>:</p>
+<ul>
+<li>None</li>
+</ul>
+<section id="agenda-2" class="level3">
+<h3 data-anchor-id="agenda-2">Agenda</h3>
+<ul>
+<li>Shiny App modules</li>
+</ul>
+</section>
+<section id="shiny-app-modules" class="level3">
+<h3 data-anchor-id="shiny-app-modules">Shiny App Modules</h3>
+<p>Modules has been decided and split among us via whatsapp. This lists the final details of the modules we are working on as part of Take-home_Ex04.</p>
+<p><strong>EDA</strong></p>
+<ul>
+<li>Ci Hui will be working on EDA</li>
+<li>EDA will consist of both climate and dengue data</li>
+<li>EDA will allow users to view distribution of data, and compare across years and stations</li>
+</ul>
+<p><strong>Explanatory Model</strong></p>
+<ul>
+<li>Yi Ping will be working on the Explanatory model</li>
+<li>Model will be linear regression, with dengue cases as the explained variable, and climate as the explanatory variables</li>
+<li>Users can decide which variables to include in the model</li>
+<li>Results will show model metrics such as accuracy, as well as variable importance</li>
+</ul>
+<p><strong>Time series forecast</strong></p>
+<ul>
+<li>Colin will be working on the time series forecast</li>
+<li>Model will be Holt Winters</li>
+<li>Users will be able to choose which climate variable to forecast, and from which whether station. In addition, users will be able to define the time range, train-test split, as well as other tuning parameters</li>
+<li>Results will show forecasted values in a plot, with confidence interval</li>
+</ul>
+</section>
+<section id="agenda-for-next-meeting-2" class="level3">
+<h3 data-anchor-id="agenda-for-next-meeting-2">Agenda for next meeting</h3>
+<ul>
+<li>Shiny App progress</li>
+<li>Website progress</li>
+<li>Begin Poster discussions</li>
+</ul>
+</section>
+<section id="adjournment-2" class="level3">
+<h3 data-anchor-id="adjournment-2">Adjournment</h3>
+<p>Meeting ended at 4:30am. Next meeting on 16th March, 3:30pm (Tentative) after class.</p>
+</section>
+</section>
+<section id="meeting-04" class="level2">
+<h2 data-anchor-id="meeting-04">2024-03-16 Meeting 04</h2>
+<p><strong>Date</strong>: 16 Mar 2024, 3:50pm</p>
+<p><strong>Present</strong>:</p>
+<ul>
+<li>Colin</li>
+<li>Yiping</li>
+<li>Ci Hui</li>
+</ul>
+<p><strong>Absent</strong>:</p>
+<ul>
+<li>None</li>
+</ul>
+<section id="agenda-3" class="level3">
+<h3 data-anchor-id="agenda-3">Agenda</h3>
+<ul>
+<li>Shiny App modules</li>
+<li>Project poster</li>
+</ul>
+</section>
+<section id="shiny-app-modules-1" class="level3">
+<h3 data-anchor-id="shiny-app-modules-1">Shiny App Modules</h3>
+<p>Modules has been decided and split among us via whatsapp. This lists the final details of the modules we are working on for the group Shiny app.</p>
+<p><strong>EDA</strong></p>
+<ul>
+<li>Ci Hui has made some plots to discover the trends in the weather data such as cycle plots and geospacial graphs</li>
+<li>More charts will be added to review the relation between weather data and dengue data</li>
+</ul>
+<p><strong>Feature Selection</strong></p>
+<p><strong>Correlation study</strong></p>
+<ul>
+<li>Ci Hui shared the correlation matrix she made for the weather data</li>
+<li>Correlation between weather and dengue cases will be added</li>
+</ul>
+<p><strong>Explanatory Model</strong></p>
+<ul>
+<li>Yi Ping shared that the explanatory model has been calibrated, but the adjusted R^2 is low (~ 3%) which indicates that weather data alone is not enough to explain the dengue cases</li>
+<li>Transformation did help to bring the adjusted R^2 from ~2% to ~3%</li>
+<li>Users will be able to choose which transformation they want to apply, i.e.&nbsp;log transformation, min-max transformation and standardization</li>
+<li>Yi Ping will plot the variable coefficients in a graph so the users can view them visually</li>
+</ul>
+<p><strong>Time series forecast</strong></p>
+<ul>
+<li>Colin will be working on a multivariate forecast model, using the forecasted weather data to predict the dengue cases</li>
+<li>The timeseries packages shared by prof in class is very helpful, and Colin will update the codes using those recommended packages and graphs</li>
+</ul>
+<p>Ci Hui and Yi Ping will share the data sets and codes with Colin to test the Shiny app.</p>
+</section>
+<section id="project-poster" class="level3">
+<h3 data-anchor-id="project-poster">Project Poster</h3>
+<p>We will start to work on the poster by referencing to the work from the course seniors. The content written for the sections (i.e.&nbsp;introduction, methodology, tools) can be also displayed in the Shiny app.</p>
+</section>
+<section id="agenda-for-next-meeting-3" class="level3">
+<h3 data-anchor-id="agenda-for-next-meeting-3">Agenda for next meeting</h3>
+<ul>
+<li>Shiny App progress</li>
+<li>Poster draft design</li>
+</ul>
+</section>
+<section id="adjournment-3" class="level3">
+<h3 data-anchor-id="adjournment-3">Adjournment</h3>
+<p>Meeting ended at 4:30pm. Next meeting on 23rd March, 3:30pm (Tentative) after class.</p>
+</section>
+</section>
+<section id="meeting-05" class="level2">
+<h2 data-anchor-id="meeting-05">2024-03-23 Meeting 05</h2>
+<p><strong>Date</strong>: 23 Mar 2024, 3:40pm</p>
+<p><strong>Present</strong>:</p>
+<ul>
+<li>Colin</li>
+<li>Yiping</li>
+<li>Prof Kam</li>
+</ul>
+<p><strong>Absent</strong>:</p>
+<ul>
+<li>Ci Hui</li>
+</ul>
+<section id="agenda-4" class="level3">
+<h3 data-anchor-id="agenda-4">Agenda</h3>
 
 
+</section>
+</section>
 
 <a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> Back to top</a></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">

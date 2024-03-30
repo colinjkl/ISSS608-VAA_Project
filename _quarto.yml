@@ -2,13 +2,10 @@ project:
   type: website
 
 website:
-  title: "ISSS608-VAA_Project"
+  title: "ISSS608 VAA - Project Group 3"
   back-to-top-navigation: true
   navbar:
     pinned: true
-    left:
-      - href: Proposal/Proposal.qmd
-        text: Proposal
     right:
       - href: index.qmd#top
         text: Home
@@ -16,10 +13,16 @@ website:
         text: Introduction
       - href: index.qmd#figures
         text: At a Glance
+      - href: Poster/Poster.qmd
+        text: Poster
+      - href: Shinyapp/Shinyapp.qmd
+        text: Shiny APP
+      - href: User_Manual/User_Manual.qmd
+        text: User Manual
       - href: index.qmd#storyboard
         text: Our Works
   page-footer: 
-    left: "some team name" 
+    left: "ISSS608 VAA Project Group 3" 
     right: 
       - icon: github
 

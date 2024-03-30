@@ -3,8 +3,11 @@
     "listing": "/index.html",
     "items": [
       "/Poster/Poster.html",
+      "/Meeting_Minute/Meeting_Minute.html",
       "/Proposal/Proposal.html",
-      "/Shinyapp/Shinyapp.html"
+      "/Prototype/Prototype.html",
+      "/Shinyapp/Shinyapp.html",
+      "/User_Manual/User_Manual.html"
     ]
   }
 ]
