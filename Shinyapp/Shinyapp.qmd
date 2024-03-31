@@ -1,5 +1,13 @@
 ---
 title: "Shinyapp"
+description: "A user friendly app powered by Shiny for uses to perform visual analytics and calibrate forecast models."
+date: "09-Mar-2024"
+date-modified: "last-modified"
+execute: 
+  eval: true
+  echo: true
+  warning: false
+editor: visual
 ---
 
 [![](/images/application.webp){fig-align="center" width="1600"}](https://prototype-isss608vaa.shinyapps.io/ProjectShinyApp/)
