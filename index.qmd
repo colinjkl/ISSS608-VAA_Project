@@ -102,9 +102,9 @@ The weekly reported cases could increase by 1.13 cases with [every 1mm increase 
 ::: block
 <h1>2023 was Singapore's 4th hottest year on record</h1>
 
-Nearly 20 temperature-related records in Singapore were matched or broken. This included the highest daily temperature of 37 deg C recorded on May 13, 2023, in Ang Mo Kio, which tied with that recorded in Tengah in 1983.
+Nearly 20 temperature-related records in Singapore were matched or broken. This included the highest daily temperature of 37°C recorded on May 13, 2023, in Ang Mo Kio, which tied with that recorded in Tengah in 1983.
 
-With a mean temperature of 29.5 deg C, May 2023 matched March 1998 for the warmest month on record.
+With a mean temperature of 29.5°C, May 2023 matched March 1998 for the warmest month on record.
 
 [Source](https://www.straitstimes.com/singapore/environment/2023-was-singapore-s-4th-hottest-year-on-record-tying-with-1997-and-2015#:~:text=Nearly%2020%20temperature%2Drelated%20records,the%20warmest%20month%20on%20record.)
 :::
