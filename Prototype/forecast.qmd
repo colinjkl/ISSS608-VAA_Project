@@ -1,13 +1,11 @@
 ---
-title: "Dengue Forecast in Singapore"
-author: "Colin Jiang Kelin"
-date: " 17, 2024"
+title: "Time Series Forecasting"
+description: "Forecasting Dengue Cases using various models"
+date: "09-Mar-2024"
 date-modified: "last-modified"
 execute: 
   eval: true
   echo: true
-  freeze: true
-  message: false
   warning: false
 editor: visual
 ---
@@ -100,11 +98,11 @@ arima_tbl$Type <- "Observed"
 
 arima_avp <- dplyr::bind_rows(arima_fitted, arima_tbl)
 
-ggplotly(
-  ggplot(data = arima_avp) +
-    geom_line(aes(x = Date, y = Cases, colour = Type)) +
-    ggtitle("Observed vs Fitted")
-)
+
+ggplot(data = arima_avp) +
+  geom_line(aes(x = Date, y = Cases, colour = Type)) +
+  ggtitle("Observed vs Fitted")
+
 ```
 
 ### Model Metrics
@@ -204,10 +202,6 @@ components(ets_mdl) %>%
   labs(title = "Exponential Smoothing Components")
 ```
 
-```{r}
-autoplot(ets_tbl)
-```
-
 ### Actual vs Predicted
 
 ```{r}
@@ -221,11 +215,11 @@ ets_tbl$Type <- "Observed"
 
 ets_avp <- dplyr::bind_rows(ets_fitted, ets_tbl)
 
-ggplotly(
-  ggplot(data = ets_avp) +
-    geom_line(aes(x = Date, y = Cases, colour = Type)) +
-    ggtitle("Observed vs Fitted")
-)
+
+ggplot(data = ets_avp) +
+  geom_line(aes(x = Date, y = Cases, colour = Type)) +
+  ggtitle("Observed vs Fitted")
+
 ```
 
 ### Model Metrics
@@ -266,22 +260,10 @@ var_ts <-  df %>% dplyr::select(-c("Year", "WkNo"))
 var_tbl <- var_ts %>% as_tsibble(index = Date) %>% fill_gaps(.full = TRUE) %>% fill(colnames(var_ts))
 ```
 
-### Model
+### Model Construct
 
 ```{r}
-var_mdl <- var_tbl %>%
-  model(
-    aicc = VAR(vars(Cases, avg_mean_temp, avg_daily_rainfall), ic="aicc")
-  )
-```
-
-### Formula construction
-
-```{r}
-i <- c("avg_temp")
-```
-
-```{r}
+i <- c("avg_temp, avg_rainfall")
 v <- "Cases"
 mode <- '"aicc"'
 
@@ -316,11 +298,11 @@ var_tbl$Type <- "Observed"
 
 var_avp <- dplyr::bind_rows(var_fitted, var_tbl)
 
-ggplotly(
-  ggplot(data = var_avp) +
-    geom_line(aes(x = Date, y = Cases, colour = Type)) +
-    ggtitle("Observed vs Fitted")
-)
+
+ggplot(data = var_avp) +
+  geom_line(aes(x = Date, y = Cases, colour = Type)) +
+  ggtitle("Observed vs Fitted")
+
 ```
 
 ### Model Metrics
@@ -353,6 +335,10 @@ fc %>% autoplot(var_tbl)
 ```
 
 ```{r}
+ci <- hilo(fc)
+```
+
+```{r}
 v <- "avg_rainfall"
 
 var_fc <- data.frame(Date=fc$Date, 
@@ -374,12 +360,6 @@ var_obs <- data.frame(Date=var_tbl$Date,
                       Type="Observed")
 
 var_plot <- dplyr::bind_rows(var_obs, var_fc)
-```
-
-```{r}
-ci <- hilo(fc)
-
-ci$`80%`[[v]]$lower
 ```
 
 ```{r}

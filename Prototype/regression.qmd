@@ -1,6 +1,16 @@
 ---
-title: "regression"
+title: "Explanatory models"
+description: "How much of Dengue is explained by Climate?"
+date: "17-Mar-2024"
+date-modified: "last-modified"
+execute: 
+  eval: true
+  echo: true
+  warning: false
+editor: visual
 ---
+
+## Linear Regression
 
 ```{r}
 pacman::p_load(
@@ -11,10 +21,11 @@ pacman::p_load(
   patchwork,
   plotly,
   lubridate,
-  # caret,
+  caret,
   performance,
   ggstatsplot,
-  qqplotr
+  qqplotr,
+  tsibbledata
 )
 ```
 
@@ -43,15 +54,7 @@ mdl <- lm(as.formula(paste0("Cases ~ ",j)), data=df)
 ```
 
 ```{r}
-length(c())
-```
-
-```{r}
 summary(mdl)
-```
-
-```{r}
-mdl$fitted.values %>% as.data.frame()
 ```
 
 ### Model coeff plot
@@ -59,10 +62,6 @@ mdl$fitted.values %>% as.data.frame()
 ```{r}
 ggcoefstats(mdl, 
             output = "plot")
-```
-
-```{r}
-ggplot()
 ```
 
 ### Model Metrics
@@ -81,7 +80,7 @@ summ$adj.r.squared
 summ$fstatistic[[1]]
 ```
 
-### AVP
+### Model AVP
 
 ```{r}
 df_a <- data.frame(Date=df$Date, Cases=mdl$fitted.values, Type="Fitted")
@@ -129,4 +128,67 @@ p2 <- df_tbl %>% autoplot(avg_temp)
 
 ```{r}
 p1 / p2
+```
+
+## Time Series Linear Regression
+
+```{r}
+# Convert the tibble dataframe to a tsibble dataframe
+tslm_ts <-  df %>% dplyr::select(-c("Year", "WkNo"))
+tslm_tbl <- tslm_ts %>% as_tsibble(index = Date) %>% fill_gaps(.full = TRUE) %>% fill(colnames(tslm_ts))
+tslm_slice <- tslm_tbl
+```
+
+### Model Construct
+
+```{r}
+v = "Cases"
+j = "log_tot_rainfall + log_avg_temp + log_avg_wind"
+tslm_mdl <- tslm_slice %>%
+          model(TSLM(as.formula(paste0(v," ~ ",j))))
+
+report(tslm_mdl)
+```
+
+### Model Metrics
+
+```{r}
+tslm_mdl %>%
+  accuracy()
+```
+
+### Model Residuals
+
+```{r}
+gg_tsresiduals(tslm_mdl)
+```
+
+### Model Coeff plot
+
+```{r}
+ggcoefstats(tslm_mdl %>% tidy(), 
+            output = "plot")
+```
+
+```{r}
+tslm_mdl %>% tidy()
+```
+
+### Model AVP
+
+```{r}
+var_fitted <- fitted(tslm_mdl)[,2:3] %>% 
+  as_tibble() %>% 
+  rename(Cases=.fitted)
+
+var_fitted$Type <- "Fit"
+
+tslm_slice$Type <- "Observed"
+
+var_avp <- dplyr::bind_rows(var_fitted, tslm_slice)
+
+
+ggplot(data = var_avp) +
+  geom_line(aes(x = Date, y = Cases, colour = Type)) +
+  ggtitle("Observed vs Fitted")
 ```

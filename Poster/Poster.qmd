@@ -1,5 +1,6 @@
 ---
 title: "Project Poster"
+description: "Poster presentation that summarizes our work and findings"
 date: "28-Mar-2024"
 date-modified: "last-modified"
 execute: 

@@ -1,5 +1,23 @@
 ---
 title: "Prototype"
+
+listing:
+  id: prototype-listings
+  contents: 
+    - "eda.qmd"
+    - "regression.qmd"
+    - "forecast.qmd"
+  type: default
+  sort: false
 ---
 
-![Sorry! Still Work in Progress](/images/bugcat wip.gif){fig-align="center"}
+Take a moment to revisit the journey of our Shiny App development
+
+![](/images/prototype.jpg){fig-align="center"}
+
+<br>
+
+<h1>Table of content</h1>
+
+::: {#prototype-listings}
+:::

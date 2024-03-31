@@ -9,5 +9,13 @@
       "/Shinyapp/Shinyapp.html",
       "/User_Manual/User_Manual.html"
     ]
+  },
+  {
+    "listing": "/Prototype/Prototype.html",
+    "items": [
+      "/Prototype/eda.html",
+      "/Prototype/regression.html",
+      "/Prototype/forecast.html"
+    ]
   }
 ]
