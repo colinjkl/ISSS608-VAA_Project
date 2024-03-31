@@ -71,21 +71,27 @@ Forecast the future dengue cases
 
 ::: grid_block
 ::: {.col-xs-6 .col-md-4}
-<h2>\##</h2>
+<h2>1,331 cases</h2>
 
-Some weather highlights Some weather highlights Some weather highlights Some weather highlights
+The weekly reported cases could increase by 1,331 cases with [every 1°C increase in temperature]{style="font-size: 20px; color: #FFF3CD"}
+
+![](images/clipboard-1915963522.png){fig-align="center" width="88"}
 :::
 
 ::: {.col-xs-6 .col-md-4}
-<h2>\##</h2>
+<h2>3.80 cases</h2>
 
-Some weather highlights Some weather highlights Some weather highlights Some weather highlights
+The weekly reported cases could increase by 3.80 cases with [every 1km/h increase in wind speed]{style="font-size: 20px; color: #FFF3CD"}
+
+![](images/clipboard-3411943648.png){fig-align="center" width="88"}
 :::
 
 ::: {.col-xs-6 .col-md-4}
-<h2>\##</h2>
+<h2>1.13 cases</h2>
 
-Some weather highlights Some weather highlights Some weather highlights Some weather highlights
+The weekly reported cases could increase by 1.13 cases with [every 1mm increase in total rainfall]{style="font-size: 20px; color: #FFF3CD"}
+
+![](images/clipboard-468953129.png){fig-align="center" width="95" height="110"}
 :::
 :::
 
