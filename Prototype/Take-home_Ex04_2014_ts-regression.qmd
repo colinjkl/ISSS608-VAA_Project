@@ -35,8 +35,8 @@ report(tslm_mdl)
 ```
 
 ```{r}
-v = "Cases"
-j = "avg_temp + avg_rainfall"
+v = "log_Cases"
+j = "log_tot_rainfall + log_avg_temp + log_avg_wind"
 tslm_mdl <- tslm_slice %>%
           model(TSLM(as.formula(paste0(v," ~ ",j))))
 

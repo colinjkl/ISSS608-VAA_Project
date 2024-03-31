@@ -2,7 +2,7 @@ project:
   type: website
 
 website:
-  title: "ISSS608 VAA - Project Group 3"
+  title: "ISSS608 Group 3 - Analysis of Climate Impact on Dengue"
   back-to-top-navigation: true
   navbar:
     pinned: true

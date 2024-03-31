@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>ISSS608-VAA_Project - Take-home_Ex04_ts-regression</title>
+<title>ISSS608 VAA - Project Group 3 - Take-home_Ex04_ts-regression</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -105,7 +105,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container">
     <a class="navbar-brand" href="../index.html">
-    <span class="navbar-title">ISSS608-VAA_Project</span>
+    <span class="navbar-title">ISSS608 VAA - Project Group 3</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -113,12 +113,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <span class="navbar-toggler-icon"></span>
 </button>
           <div class="collapse navbar-collapse" id="navbarCollapse">
-            <ul class="navbar-nav navbar-nav-scroll me-auto">
-  <li class="nav-item">
-    <a class="nav-link" href="../Proposal/Proposal.html" rel="" target="">
- <span class="menu-text">Proposal</span></a>
-  </li>  
-</ul>
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item">
     <a class="nav-link" href="../index.html#top" rel="" target="">
@@ -131,6 +125,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li class="nav-item">
     <a class="nav-link" href="../index.html#figures" rel="" target="">
  <span class="menu-text">At a Glance</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../Poster/Poster.html" rel="" target="">
+ <span class="menu-text">Poster</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../Shinyapp/Shinyapp.html" rel="" target="">
+ <span class="menu-text">Shiny APP</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../User_Manual/User_Manual.html" rel="" target="">
+ <span class="menu-text">User Manual</span></a>
   </li>  
   <li class="nav-item">
     <a class="nav-link" href="../index.html#storyboard" rel="" target="">
@@ -227,31 +233,32 @@ F-statistic: 5.071 on 6 and 353 DF, p-value: 5.2194e-05</code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>v <span class="ot">=</span> <span class="st">"Cases"</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>j <span class="ot">=</span> <span class="st">"avg_temp + avg_rainfall"</span></span>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>v <span class="ot">=</span> <span class="st">"log_Cases"</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>j <span class="ot">=</span> <span class="st">"log_tot_rainfall + log_avg_temp + log_avg_wind"</span></span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>tslm_mdl <span class="ot">&lt;-</span> tslm_slice <span class="sc">%&gt;%</span></span>
 <span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>          <span class="fu">model</span>(<span class="fu">TSLM</span>(<span class="fu">as.formula</span>(<span class="fu">paste0</span>(v,<span class="st">" ~ "</span>,j))))</span>
 <span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="fu">report</span>(tslm_mdl)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Series: Cases 
+<pre><code>Series: log_Cases 
 Model: TSLM 
 
 Residuals:
     Min      1Q  Median      3Q     Max 
--278.05 -183.52  -59.19   79.79 1511.95 
+-1.9058 -0.7821  0.1179  0.6230  2.3016 
 
 Coefficients:
-              Estimate Std. Error t value Pr(&gt;|t|)   
-(Intercept)  -1236.318    584.416  -2.115   0.0351 * 
-avg_temp        52.847     20.406   2.590   0.0100 **
-avg_rainfall     4.436      3.886   1.142   0.2544   
+                  Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)      -22.43517    6.26405  -3.582 0.000389 ***
+log_tot_rainfall   0.12131    0.05869   2.067 0.039468 *  
+log_avg_temp       7.19398    1.77473   4.054  6.2e-05 ***
+log_avg_wind       1.33460    0.34523   3.866 0.000132 ***
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-Residual standard error: 283.9 on 357 degrees of freedom
-Multiple R-squared: 0.01845,    Adjusted R-squared: 0.01295
-F-statistic: 3.355 on 2 and 357 DF, p-value: 0.036004</code></pre>
+Residual standard error: 0.9105 on 356 degrees of freedom
+Multiple R-squared: 0.0727, Adjusted R-squared: 0.06489
+F-statistic: 9.304 on 3 and 356 DF, p-value: 6.151e-06</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -259,9 +266,9 @@ F-statistic: 3.355 on 2 and 357 DF, p-value: 0.036004</code></pre>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">accuracy</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 1 × 10
-  .model                .type       ME  RMSE   MAE   MPE  MAPE  MASE RMSSE  ACF1
-  &lt;chr&gt;                 &lt;chr&gt;    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
-1 "TSLM(as.formula(pas… Trai… 2.60e-14  283.  187. -130.  157.  4.91  4.54 0.970</code></pre>
+  .model               .type        ME  RMSE   MAE   MPE  MAPE  MASE RMSSE  ACF1
+  &lt;chr&gt;                &lt;chr&gt;     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+1 "TSLM(as.formula(pa… Trai… -1.34e-16 0.905 0.749 -3.30  15.4  4.67  4.48 0.942</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -270,7 +277,7 @@ F-statistic: 3.355 on 2 and 357 DF, p-value: 0.036004</code></pre>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ACF</span>() <span class="sc">|&gt;</span></span>
 <span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">autoplot</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Response variable not specified, automatically selected `var = Cases`</code></pre>
+<pre><code>Response variable not specified, automatically selected `var = log_Cases`</code></pre>
 </div>
 <div class="cell-output-display">
 <p><img src="Take-home_Ex04_2014_ts-regression_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid" width="672"></p>
@@ -304,12 +311,13 @@ F-statistic: 3.355 on 2 and 357 DF, p-value: 0.036004</code></pre>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>tslm_mdl <span class="sc">%&gt;%</span> <span class="fu">tidy</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 3 × 6
+<pre><code># A tibble: 4 × 6
   .model                              term  estimate std.error statistic p.value
   &lt;chr&gt;                               &lt;chr&gt;    &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;
-1 "TSLM(as.formula(paste0(v, \" ~ \"… (Int… -1236.      584.       -2.12  0.0351
-2 "TSLM(as.formula(paste0(v, \" ~ \"… avg_…    52.8      20.4       2.59  0.0100
-3 "TSLM(as.formula(paste0(v, \" ~ \"… avg_…     4.44      3.89      1.14  0.254 </code></pre>
+1 "TSLM(as.formula(paste0(v, \" ~ \"… (Int…  -22.4      6.26       -3.58 3.89e-4
+2 "TSLM(as.formula(paste0(v, \" ~ \"… log_…    0.121    0.0587      2.07 3.95e-2
+3 "TSLM(as.formula(paste0(v, \" ~ \"… log_…    7.19     1.77        4.05 6.20e-5
+4 "TSLM(as.formula(paste0(v, \" ~ \"… log_…    1.33     0.345       3.87 1.32e-4</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -568,7 +576,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </div> <!-- /content -->
 <footer class="footer">
   <div class="nav-footer">
-    <div class="nav-footer-left">some team name</div>   
+    <div class="nav-footer-left">ISSS608 VAA Project Group 3</div>   
     <div class="nav-footer-center">
       &nbsp;
     </div>

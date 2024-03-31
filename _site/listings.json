@@ -2,8 +2,8 @@
   {
     "listing": "/index.html",
     "items": [
-      "/Poster/Poster.html",
       "/Meeting_Minute/Meeting_Minute.html",
+      "/Poster/Poster.html",
       "/Proposal/Proposal.html",
       "/Prototype/Prototype.html",
       "/Shinyapp/Shinyapp.html",

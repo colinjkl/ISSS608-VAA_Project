@@ -1,8 +1,15 @@
 ---
 title: "Project Meeting Minutes"
+date: "07-feb-2024"
+date-modified: "last-modified"
+execute: 
+  eval: true
+  echo: true
+  warning: false
+editor: visual
 ---
 
-![](images/MM_title.png){fig-align="center" width="1868"}
+![](images/MM_title.jpg){fig-align="center" width="1868"}
 
 This document records the minutes of our project meetings.
 
@@ -11,7 +18,6 @@ This document records the minutes of our project meetings.
 -   CI Hui
 -   Colin JIANG Kelin
 -   SUN Yiping
-
 
 ## 2024-02-07 Meeting 01
 

@@ -83,11 +83,11 @@ To evaluate the models’ performance and identify the champion model after deve
 
 -   **Root mean squared error (RMSE)** which is the square root of mean squared error (MSE). It measures how far the forecasted values are deviated from the actual measurements.
 
-    ![](Formula - RMSE.png)
+    ![](Formula%20-%20RMSE.png)
 
 -   **Mean absolute percentage error (MAPE)** which measures the percentage error against the actual measurements. It’s largely adopted because it’s normalized in percentage form, which many people find it easier to interpret and compare among different methods.
 
-    ![](Formula - MAPE.png)
+    ![](Formula%20-%20MAPE.png)
 
 # ShinyApp layout
 
@@ -125,7 +125,7 @@ To give users a clearer view of changes over time, the Trend tab utilizes a para
 
 In this section, the users will be able to visualize the correlation between temp/rain and dengue cases. Those who are in the public health sector can make use of this information to develop better strategies to prevent dengue outbreak.
 
-![](Dashboard Climate Impact.jpg)
+![](Dashboard%20Climate%20Impact.jpg)
 
 ## Forecast
 
@@ -143,4 +143,4 @@ Finally, we will include a tab for CDA to evaluate the performance of the traine
 
 # Reference
 
-Wang, Y.W., Wei, Y.C., Li, K.H., Jiang, X.T., Li, C.L., Yue, Q.Y., Zee, B., Chong, K.C. (2022). Impact of extreme weather on dengue fever infection in four Asian countries: A modelling analysis. *Environment International*. 169. [https://doi.org/10.1016/j.envint.2022.107518](https://doi.org/10.1016/j.envint.2022.107518)
+Wang, Y.W., Wei, Y.C., Li, K.H., Jiang, X.T., Li, C.L., Yue, Q.Y., Zee, B., Chong, K.C. (2022). Impact of extreme weather on dengue fever infection in four Asian countries: A modelling analysis. *Environment International*. 169. <https://doi.org/10.1016/j.envint.2022.107518>
