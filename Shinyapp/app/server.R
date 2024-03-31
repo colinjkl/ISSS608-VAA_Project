@@ -17,41 +17,31 @@ pacman::p_load(
   ggstatsplot,
   MLmetrics,
   performance,
-  caret,
   qqplotr,
-  lubridate,
-  ggthemes, 
   sf, 
   terra, 
   gstat, 
-  automap, 
   tmap, 
-  viridis, 
-  zoo,
   rstantools,
-  urca
+  urca,
+  see
 )
 
 stations <- read_csv("data/RainfallStation.csv")
 
-climate_data <- read_csv("data/clean_climate_data.csv")
+# climate_data <- read_csv("data/clean_climate_data.csv")
 
 df <- read_csv("data/dengue_climate_joined_by_week_transformed_diff.csv")
 
 df$Date <- lubridate::ymd(lubridate::parse_date_time(paste(df$Year, df$WkNo, 1, sep="/"),'Y/W/w'))
 
-arima_ts <-  df %>% dplyr::select(Date, Cases)
-arima_tbl <- arima_ts %>% as_tsibble(index = Date) %>% fill_gaps(.full = TRUE) %>% fill(Cases)
-
-ets_ts <-  df %>% dplyr::select(Date, Cases)
-ets_tbl <- ets_ts %>% as_tsibble(index = Date) %>% fill_gaps(.full = TRUE) %>% fill(Cases)
+arima_tbl <- df %>% dplyr::select(Date, Cases) %>% as_tsibble(index = Date) %>% fill_gaps(.full = TRUE) %>% fill(Cases)
 
 var_ts <-  df %>% dplyr::select(-c("Year", "WkNo"))
 var_tbl <- var_ts %>% as_tsibble(index = Date) %>% fill_gaps(.full = TRUE) %>% fill(colnames(var_ts))
 
-tslm_ts <-  df %>% dplyr::select(-c("Year", "WkNo"))
-tslm_tbl <- tslm_ts %>% as_tsibble(index = Date) %>% fill_gaps(.full = TRUE) %>% fill(colnames(tslm_ts))
-
+rm(var_ts)
+gc()
 
 # Define server logic required to draw a histogram
 function(input, output, session) {
@@ -94,13 +84,13 @@ function(input, output, session) {
       end_year <- input$periodRangeAnova[2]
       input_year <- seq(start_year, end_year)
       
-      input_data <- climate_data %>%
-        select('Station','Year','Month','Day',input_msmt)%>%
-        filter(Station == input_station,
-               Year %in% input_year)
+      # input_data <- 
       
       ggbetweenstats(
-        data = input_data,
+        data = read_csv("data/clean_climate_data.csv") %>%
+          select('Station','Year','Month','Day',input_msmt)%>%
+          filter(Station == input_station,
+                 Year %in% input_year),
         x = Year, 
         y = !!rlang::sym(input_msmt),
         type = "p",
@@ -112,51 +102,54 @@ function(input, output, session) {
         centrality.label.args = list(size  = 5),
         ggplot.component = list(theme(text = element_text(size = 14),
                                       plot.title = element_text(size = 24))),
-        title = paste0("Comparison of ",input_msmt," between years (", start_year, "-", end_year,")")
+        title = paste0(input_station," ",input_msmt," between years (", start_year, "-", end_year,")")
       )
       
     })
     
   })
   
-  # anova plot 2 ----
-  output$anova_2 <- renderPlot({
-    
-    if (input$anovaTuneButton == 0) return()
-    
-    isolate({
-      
-      #Inputs
-      input_station <- input$stationsAnova2
-      input_msmt <- input$variableAnova
-      start_year <- input$periodRangeAnova[1]
-      end_year <- input$periodRangeAnova[2]
-      input_year <- seq(start_year, end_year)
-      
-      input_data <- climate_data %>%
-        select('Station','Year','Month','Day',input_msmt)%>%
-        filter(Station == input_station,
-               Year %in% input_year)
-      
-      ggbetweenstats(
-        data = input_data,
-        x = Year, 
-        y = !!rlang::sym(input_msmt),
-        type = "p",
-        mean.ci = TRUE, 
-        pairwise.comparisons = TRUE, 
-        pairwise.display = "s",
-        p.adjust.method = "fdr",
-        messages = FALSE,
-        centrality.label.args = list(size  = 5),
-        ggplot.component = list(theme(text = element_text(size = 14),
-                                      plot.title = element_text(size = 24))),
-        title = paste0("Comparison of ",input_msmt," between years (", start_year, "-", end_year,")")
-      ) 
-      
-    })
-    
-  })
+  # # anova plot 2 ----
+  # output$anova_2 <- renderPlot({
+  #   
+  #   if (input$anovaTuneButton == 0) return()
+  #   
+  #   isolate({
+  #     
+  #     #Inputs
+  #     input_station <- input$stationsAnova2
+  #     input_msmt <- input$variableAnova
+  #     start_year <- input$periodRangeAnova[1]
+  #     end_year <- input$periodRangeAnova[2]
+  #     input_year <- seq(start_year, end_year)
+  #     
+  #     # input_data <- read_csv("data/clean_climate_data.csv") %>%
+  #     #   select('Station','Year','Month','Day',input_msmt)%>%
+  #     #   filter(Station == input_station,
+  #     #          Year %in% input_year)
+  #     
+  #     ggbetweenstats(
+  #       data = read_csv("data/clean_climate_data.csv") %>%
+  #         select('Station','Year','Month','Day',input_msmt)%>%
+  #         filter(Station == input_station,
+  #                Year %in% input_year),
+  #       x = Year, 
+  #       y = !!rlang::sym(input_msmt),
+  #       type = "p",
+  #       mean.ci = TRUE, 
+  #       pairwise.comparisons = TRUE, 
+  #       pairwise.display = "s",
+  #       p.adjust.method = "fdr",
+  #       messages = FALSE,
+  #       centrality.label.args = list(size  = 5),
+  #       ggplot.component = list(theme(text = element_text(size = 14),
+  #                                     plot.title = element_text(size = 24))),
+  #       title = paste0(input_station," ",input_msmt," between years (", start_year, "-", end_year,")")
+  #     ) 
+  #     
+  #   })
+  #   
+  # })
   
   # geo plot 1 ----
   output$geo_1 <- renderPlot({
@@ -172,13 +165,15 @@ function(input, output, session) {
         input_msmt <- input$variableGeoIdw
         input_agg <- input$aggGeoIdw
         input_nmax <- input$nmaxGeoIdw
+        input_reso_row <- input$resoGeoIdw
+        input_reso_col <- input$resoGeoIdw * 1.557971
         
         #Preparing the input data
-        input_data <- climate_data %>%
+        rfdata <- read_csv("data/clean_climate_data.csv") %>%
           select('Station','Year','Month','Day',input_msmt)%>%
           filter(Year == input_year)
         
-        rfdata <- input_data%>%
+        rfdata <- rfdata%>%
           select(c(1,5))%>%
           group_by(Station)%>%
           summarise(year_agg = switch(input_agg,
@@ -194,7 +189,7 @@ function(input, output, session) {
         rfdata <- rfdata %>%
           left_join(stations)
         
-        rfdata_sf<- st_as_sf(rfdata,
+        rfdata<- st_as_sf(rfdata,
                              coords = c("Longitude", "Latitude"),
                              crs = 4326)%>%
           st_transform(crs = 3414)
@@ -203,36 +198,35 @@ function(input, output, session) {
         mpsz2019 <- st_read(dsn = "data/geospatial", layer = "MPSZ-2019")%>%
           st_transform(crs = 3414)
         
-        grid <- terra::rast(mpsz2019, 
-                            nrows = 690, 
-                            ncols = 1075)
+        resp <- predict(gstat(formula = year_agg ~ 1, 
+                              locations = rfdata, 
+                              nmax = input_nmax,
+                              set = list(idp = 0)), 
+                        st_filter(st_as_sf(as.data.frame(terra::xyFromCell(terra::rast(mpsz2019,
+                                                                                       nrows = input_reso_row,
+                                                                                       ncols = input_reso_col),
+                                                                           1:ncell(terra::rast(mpsz2019,
+                                                                                               nrows = input_reso_row,
+                                                                                               ncols = input_reso_col)))),
+                                           coords = c("x", "y"),
+                                           crs = st_crs(mpsz2019)), 
+                                  mpsz2019))
         
-        xy <- terra::xyFromCell(grid, 
-                                1:ncell(grid))
-        
-        coop <- st_as_sf(as.data.frame(xy), 
-                         coords = c("x", "y"),
-                         crs = st_crs(mpsz2019))
-        coop <- st_filter(coop, mpsz2019)
-        
-        res <- gstat(formula = year_agg ~ 1, 
-                     locations = rfdata_sf, 
-                     nmax = input_nmax,
-                     set = list(idp = 0))
-        
-        resp <- predict(res, coop)
+        rm(rfdata)
+        gc()
         
         resp$x <- st_coordinates(resp)[,1]
         resp$y <- st_coordinates(resp)[,2]
         resp$pred <- resp$var1.pred
         
-        pred <- terra::rasterize(resp, grid, 
-                                 field = "pred", 
-                                 fun = "mean")
-        
         tmap_options(check.and.fix = TRUE)
         tmap_mode("plot")
-        tm_shape(pred) + 
+        tm_shape(terra::rasterize(resp, 
+                                  terra::rast(mpsz2019,
+                                              nrows = input_reso_row,
+                                              ncols = input_reso_col), 
+                                  field = "pred", 
+                                  fun = "mean")) + 
           tm_raster(alpha = 0.6, 
                     palette = "viridis",
                     title = paste0(input_msmt)) +
@@ -245,6 +239,7 @@ function(input, output, session) {
           tm_compass(type="8star", size = 2) +
           tm_scale_bar() +
           tm_grid(alpha =0.2)
+
       
       } else {
         
@@ -256,13 +251,15 @@ function(input, output, session) {
         input_psill <- input$psilGeoKrig
         input_range <- input$rangeGeoKrig
         input_nugget <- input$nuggetGeoKrig
+        input_reso_row <- input$resoGeoKrig
+        input_reso_col <- input$resoGeoKrig * 1.557971
         
-         #Preparing the input data
-        input_data <- climate_data %>%
+        #Preparing the input data
+        rfdata <- read_csv("data/clean_climate_data.csv") %>%
           select('Station','Year','Month','Day',input_msmt)%>%
           filter(Year == input_year)
         
-        rfdata <- input_data%>%
+        rfdata <- rfdata%>%
           select(c(1,5))%>%
           group_by(Station)%>%
           summarise(year_agg = switch(input_agg,
@@ -278,54 +275,49 @@ function(input, output, session) {
         rfdata <- rfdata %>%
           left_join(stations)
         
-        rfdata_sf<- st_as_sf(rfdata,
-                             coords = c("Longitude", "Latitude"),
-                             crs = 4326)%>%
+        rfdata <- st_as_sf(rfdata,
+                           coords = c("Longitude", "Latitude"),
+                           crs = 4326)%>%
           st_transform(crs = 3414)
         
         #Importing planning subzone boundary data
         mpsz2019 <- st_read(dsn = "data/geospatial", layer = "MPSZ-2019")%>%
           st_transform(crs = 3414)
         
-        # fitting variogram model
-        v <- variogram(year_agg ~ 1, 
-                       data = rfdata_sf)
+        resp <- predict(gstat(formula = year_agg ~ 1, 
+                              data = rfdata, 
+                              model = fit.variogram(object = variogram(year_agg ~ 1, 
+                                                                       data = rfdata),
+                                                    model = vgm(
+                                                      psill = input_psill, 
+                                                      model = input_model,
+                                                      range = input_range,  
+                                                      nugget = input_nugget))), 
+                        st_filter(st_as_sf(as.data.frame(terra::xyFromCell(terra::rast(mpsz2019,
+                                                                                       nrows = input_reso_row,
+                                                                                       ncols = input_reso_col), 
+                                                                           1:ncell(terra::rast(mpsz2019,
+                                                                                               nrows = input_reso_row,
+                                                                                               ncols = input_reso_col)))), 
+                                           coords = c("x", "y"),
+                                           crs = st_crs(mpsz2019)), 
+                                  mpsz2019))
         
-        fv <- fit.variogram(object = v,
-                            model = vgm(
-                              psill = input_psill, 
-                              model = input_model,
-                              range = input_range,  
-                              nugget = input_nugget))
+        rm(rfdata)
+        gc()
         
-        k <- gstat(formula = year_agg ~ 1, 
-                   data = rfdata_sf, 
-                   model = fv)
-        
-        grid <- terra::rast(mpsz2019, 
-                            nrows = 690, 
-                            ncols = 1075)
-        
-        xy <- terra::xyFromCell(grid, 
-                                1:ncell(grid))
-        
-        coop <- st_as_sf(as.data.frame(xy), 
-                         coords = c("x", "y"),
-                         crs = st_crs(mpsz2019))
-        coop <- st_filter(coop, mpsz2019)
-        
-        resp <- predict(k, coop)
         resp$x <- st_coordinates(resp)[,1]
         resp$y <- st_coordinates(resp)[,2]
         resp$pred <- resp$var1.pred
         resp$pred <- resp$pred
         
-        kpred <- terra::rasterize(resp, grid, 
-                                  field = "pred")
-        
         tmap_options(check.and.fix = TRUE)
         tmap_mode("plot")
-        tm_shape(kpred) + 
+        tm_shape(terra::rasterize(resp, 
+                                  terra::rast(mpsz2019,
+                                              nrows = input_reso_row,
+                                              ncols = input_reso_col), 
+                                  field = "pred")) + 
           tm_raster(alpha = 0.6, 
                     palette = "viridis",
                     title = paste0(input_msmt)) +
@@ -338,7 +330,7 @@ function(input, output, session) {
           tm_compass(type="8star", size = 2) +
           tm_scale_bar() +
           tm_grid(alpha =0.2)
-        
+
       }
       
     })
@@ -359,13 +351,15 @@ function(input, output, session) {
         input_msmt <- input$variableGeoIdw
         input_agg <- input$aggGeoIdw
         input_nmax <- input$nmaxGeoIdw
+        input_reso_row <- input$resoGeoIdw
+        input_reso_col <- input$resoGeoIdw * 1.557971
         
         #Preparing the input data
-        input_data <- climate_data %>%
+        rfdata <- read_csv("data/clean_climate_data.csv") %>%
           select('Station','Year','Month','Day',input_msmt)%>%
           filter(Year == input_year)
         
-        rfdata <- input_data%>%
+        rfdata <- rfdata%>%
           select(c(1,5))%>%
           group_by(Station)%>%
           summarise(year_agg = switch(input_agg,
@@ -381,45 +375,44 @@ function(input, output, session) {
         rfdata <- rfdata %>%
           left_join(stations)
         
-        rfdata_sf<- st_as_sf(rfdata,
-                             coords = c("Longitude", "Latitude"),
-                             crs = 4326)%>%
+        rfdata<- st_as_sf(rfdata,
+                          coords = c("Longitude", "Latitude"),
+                          crs = 4326)%>%
           st_transform(crs = 3414)
         
         #Importing planning subzone boundary data
         mpsz2019 <- st_read(dsn = "data/geospatial", layer = "MPSZ-2019")%>%
           st_transform(crs = 3414)
         
-        grid <- terra::rast(mpsz2019, 
-                            nrows = 690, 
-                            ncols = 1075)
+        resp <- predict(gstat(formula = year_agg ~ 1, 
+                              locations = rfdata, 
+                              nmax = input_nmax,
+                              set = list(idp = 0)), 
+                        st_filter(st_as_sf(as.data.frame(terra::xyFromCell(terra::rast(mpsz2019,
+                                                                                       nrows = input_reso_row,
+                                                                                       ncols = input_reso_col),
+                                                                           1:ncell(terra::rast(mpsz2019,
+                                                                                               nrows = input_reso_row,
+                                                                                               ncols = input_reso_col)))),
+                                           coords = c("x", "y"),
+                                           crs = st_crs(mpsz2019)), 
+                                  mpsz2019))
         
-        xy <- terra::xyFromCell(grid, 
-                                1:ncell(grid))
-        
-        coop <- st_as_sf(as.data.frame(xy), 
-                         coords = c("x", "y"),
-                         crs = st_crs(mpsz2019))
-        coop <- st_filter(coop, mpsz2019)
-        
-        res <- gstat(formula = year_agg ~ 1, 
-                     locations = rfdata_sf, 
-                     nmax = input_nmax,
-                     set = list(idp = 0))
-        
-        resp <- predict(res, coop)
+        rm(rfdata)
+        gc()
         
         resp$x <- st_coordinates(resp)[,1]
         resp$y <- st_coordinates(resp)[,2]
         resp$pred <- resp$var1.pred
         
-        pred <- terra::rasterize(resp, grid, 
-                                 field = "pred", 
-                                 fun = "mean")
-        
         tmap_options(check.and.fix = TRUE)
         tmap_mode("plot")
-        tm_shape(pred) + 
+        tm_shape(terra::rasterize(resp, 
+                                  terra::rast(mpsz2019,
+                                              nrows = input_reso_row,
+                                              ncols = input_reso_col), 
+                                          field = "pred", 
+                                          fun = "mean")) + 
           tm_raster(alpha = 0.6, 
                     palette = "viridis",
                     title = paste0(input_msmt)) +
@@ -443,13 +436,15 @@ function(input, output, session) {
         input_psill <- input$psilGeoKrig
         input_range <- input$rangeGeoKrig
         input_nugget <- input$nuggetGeoKrig
+        input_reso_row <- input$resoGeoKrig
+        input_reso_col <- input$resoGeoKrig * 1.557971
         
         #Preparing the input data
-        input_data <- climate_data %>%
+        rfdata <- read_csv("data/clean_climate_data.csv") %>%
           select('Station','Year','Month','Day',input_msmt)%>%
           filter(Year == input_year)
         
-        rfdata <- input_data%>%
+        rfdata <- rfdata%>%
           select(c(1,5))%>%
           group_by(Station)%>%
           summarise(year_agg = switch(input_agg,
@@ -465,7 +460,7 @@ function(input, output, session) {
         rfdata <- rfdata %>%
           left_join(stations)
         
-        rfdata_sf<- st_as_sf(rfdata,
+        rfdata <- st_as_sf(rfdata,
                              coords = c("Longitude", "Latitude"),
                              crs = 4326)%>%
           st_transform(crs = 3414)
@@ -474,45 +469,40 @@ function(input, output, session) {
         mpsz2019 <- st_read(dsn = "data/geospatial", layer = "MPSZ-2019")%>%
           st_transform(crs = 3414)
         
-        # fitting variogram model
-        v <- variogram(year_agg ~ 1, 
-                       data = rfdata_sf)
+        resp <- predict(gstat(formula = year_agg ~ 1, 
+                              data = rfdata, 
+                              model = fit.variogram(object = variogram(year_agg ~ 1, 
+                                                                       data = rfdata),
+                                                    model = vgm(
+                                                      psill = input_psill, 
+                                                      model = input_model,
+                                                      range = input_range,  
+                                                      nugget = input_nugget))), 
+                        st_filter(st_as_sf(as.data.frame(terra::xyFromCell(terra::rast(mpsz2019,
+                                                                                       nrows = input_reso_row,
+                                                                                       ncols = input_reso_col), 
+                                                                           1:ncell(terra::rast(mpsz2019,
+                                                                                               nrows = input_reso_row,
+                                                                                               ncols = input_reso_col)))), 
+                                           coords = c("x", "y"),
+                                           crs = st_crs(mpsz2019)), 
+                                  mpsz2019))
         
-        fv <- fit.variogram(object = v,
-                            model = vgm(
-                              psill = input_psill, 
-                              model = input_model,
-                              range = input_range,  
-                              nugget = input_nugget))
+        rm(rfdata)
+        gc()
         
-        k <- gstat(formula = year_agg ~ 1, 
-                   data = rfdata_sf, 
-                   model = fv)
-        
-        grid <- terra::rast(mpsz2019, 
-                            nrows = 690, 
-                            ncols = 1075)
-        
-        xy <- terra::xyFromCell(grid, 
-                                1:ncell(grid))
-        
-        coop <- st_as_sf(as.data.frame(xy), 
-                         coords = c("x", "y"),
-                         crs = st_crs(mpsz2019))
-        coop <- st_filter(coop, mpsz2019)
-        
-        resp <- predict(k, coop)
         resp$x <- st_coordinates(resp)[,1]
         resp$y <- st_coordinates(resp)[,2]
         resp$pred <- resp$var1.pred
         resp$pred <- resp$pred
         
-        kpred <- terra::rasterize(resp, grid, 
-                                  field = "pred")
-        
         tmap_options(check.and.fix = TRUE)
         tmap_mode("plot")
-        tm_shape(kpred) + 
+        tm_shape(terra::rasterize(resp, 
+                                  terra::rast(mpsz2019,
+                                              nrows = input_reso_row,
+                                              ncols = input_reso_col), 
+                                           field = "pred")) + 
           tm_raster(alpha = 0.6, 
                     palette = "viridis",
                     title = paste0(input_msmt)) +
@@ -525,7 +515,7 @@ function(input, output, session) {
           tm_compass(type="8star", size = 2) +
           tm_scale_bar() +
           tm_grid(alpha =0.2)
-        
+
       }
       
     })
@@ -555,11 +545,11 @@ function(input, output, session) {
         input_nugget <- input$nuggetGeoKrig
         
         #Preparing the input data
-        input_data <- climate_data %>%
+        rfdata <- read_csv("data/clean_climate_data.csv") %>%
           select('Station','Year','Month','Day',input_msmt)%>%
           filter(Year == input_year)
         
-        rfdata <- input_data%>%
+        rfdata <- rfdata%>%
           select(c(1,5))%>%
           group_by(Station)%>%
           summarise(year_agg = switch(input_agg,
@@ -575,20 +565,13 @@ function(input, output, session) {
         rfdata <- rfdata %>%
           left_join(stations)
         
-        rfdata_sf<- st_as_sf(rfdata,
+        rfdata<- st_as_sf(rfdata,
                              coords = c("Longitude", "Latitude"),
                              crs = 4326)%>%
           st_transform(crs = 3414)
         
-        #Importing planning subzone boundary data
-        mpsz2019 <- st_read(dsn = "data/geospatial", layer = "MPSZ-2019")%>%
-          st_transform(crs = 3414)
-        
-        # fitting variogram model
-        v <- variogram(year_agg ~ 1, 
-                       data = rfdata_sf)
-        
-        plot(v)
+        plot(variogram(year_agg ~ 1, 
+                       data = rfdata))
 
       }
       
@@ -619,11 +602,11 @@ function(input, output, session) {
         input_nugget <- input$nuggetGeoKrig
         
         #Preparing the input data
-        input_data <- climate_data %>%
+        rfdata <- read_csv("data/clean_climate_data.csv") %>%
           select('Station','Year','Month','Day',input_msmt)%>%
           filter(Year == input_year)
         
-        rfdata <- input_data%>%
+        rfdata <- rfdata%>%
           select(c(1,5))%>%
           group_by(Station)%>%
           summarise(year_agg = switch(input_agg,
@@ -639,20 +622,13 @@ function(input, output, session) {
         rfdata <- rfdata %>%
           left_join(stations)
         
-        rfdata_sf<- st_as_sf(rfdata,
-                             coords = c("Longitude", "Latitude"),
-                             crs = 4326)%>%
+        rfdata<- st_as_sf(rfdata,
+                          coords = c("Longitude", "Latitude"),
+                          crs = 4326)%>%
           st_transform(crs = 3414)
         
-        #Importing planning subzone boundary data
-        mpsz2019 <- st_read(dsn = "data/geospatial", layer = "MPSZ-2019")%>%
-          st_transform(crs = 3414)
-        
-        # fitting variogram model
-        v <- variogram(year_agg ~ 1, 
-                       data = rfdata_sf)
-        
-        plot(v)
+        plot(variogram(year_agg ~ 1, 
+                       data = rfdata))
         
       }
       
@@ -891,9 +867,11 @@ function(input, output, session) {
         
         # find MAPE
         mape <- MAPE(y_pred = lm_mdl$fitted.values, y_true = df_slice[[v]])
+        fstat <- summ$fstatistic[[1]]
+        fstat <- ifelse(is.null(fstat), "NA", fstat)
         
         data.frame("Adjusted R^2" = summ$adj.r.squared,
-                   "F-Statistics" = summ$fstatistic[[1]],
+                   "F-Statistics" = fstat,
                    "MAPE" = round(mape,2))
         
       } else {
@@ -1380,7 +1358,7 @@ function(input, output, session) {
     isolate({
       
       # slice dates
-      tslm_slice <- tslm_tbl %>% dplyr::filter(Date >= input$periodRangeTslm[1] &
+      tslm_slice <- var_tbl %>% dplyr::filter(Date >= input$periodRangeTslm[1] &
                                                Date <= input$periodRangeTslm[2])
       
       # Parse inputs
@@ -1520,7 +1498,7 @@ function(input, output, session) {
     isolate({
       
       # slice dates
-      tslm_slice <- tslm_tbl %>% dplyr::filter(Date >= input$periodRangeTslm[1] &
+      tslm_slice <- var_tbl %>% dplyr::filter(Date >= input$periodRangeTslm[1] &
                                                  Date <= input$periodRangeTslm[2])
       
       # Parse inputs
@@ -1649,7 +1627,7 @@ function(input, output, session) {
     isolate({
       
       # slice dates
-      tslm_slice <- tslm_tbl %>% dplyr::filter(Date >= input$periodRangeTslm[1] &
+      tslm_slice <- var_tbl %>% dplyr::filter(Date >= input$periodRangeTslm[1] &
                                                  Date <= input$periodRangeTslm[2])
       
       # Parse inputs
@@ -1770,7 +1748,7 @@ function(input, output, session) {
     isolate({
       
       # slice dates
-      tslm_slice <- tslm_tbl %>% dplyr::filter(Date >= input$periodRangeTslm[1] &
+      tslm_slice <- var_tbl %>% dplyr::filter(Date >= input$periodRangeTslm[1] &
                                                  Date <= input$periodRangeTslm[2])
       
       # Parse inputs
@@ -1892,7 +1870,7 @@ function(input, output, session) {
     isolate({
       
       # slice dates
-      tslm_slice <- tslm_tbl %>% dplyr::filter(Date >= input$periodRangeTslm[1] &
+      tslm_slice <- var_tbl %>% dplyr::filter(Date >= input$periodRangeTslm[1] &
                                                  Date <= input$periodRangeTslm[2])
       
       # Parse inputs
@@ -2214,7 +2192,7 @@ function(input, output, session) {
     isolate({
       
       # slice dates
-      ets_slice <- ets_tbl %>% dplyr::filter(Date >= input$periodRangeEts[1] &
+      ets_slice <- arima_tbl %>% dplyr::filter(Date >= input$periodRangeEts[1] &
                                                Date <= input$periodRangeEts[2])
       
       # tuned ets model
@@ -2291,7 +2269,7 @@ function(input, output, session) {
     isolate({
       
       # slice dates
-      ets_slice <- ets_tbl %>% dplyr::filter(Date >= input$periodRangeEts[1] &
+      ets_slice <- arima_tbl %>% dplyr::filter(Date >= input$periodRangeEts[1] &
                                                Date <= input$periodRangeEts[2])
       
       
@@ -2328,7 +2306,7 @@ function(input, output, session) {
     isolate({
       
       # slice dates
-      ets_slice <- ets_tbl %>% dplyr::filter(Date >= input$periodRangeEts[1] &
+      ets_slice <- arima_tbl %>% dplyr::filter(Date >= input$periodRangeEts[1] &
                                                Date <= input$periodRangeEts[2])
       
       
@@ -2355,7 +2333,7 @@ function(input, output, session) {
     isolate({
       
       # slice dates
-      ets_slice <- ets_tbl %>% dplyr::filter(Date >= input$periodRangeEts[1] &
+      ets_slice <- arima_tbl %>% dplyr::filter(Date >= input$periodRangeEts[1] &
                                                Date <= input$periodRangeEts[2])
       
       
@@ -2395,7 +2373,7 @@ function(input, output, session) {
     isolate({
       
       # slice dates
-      ets_slice <- ets_tbl %>% dplyr::filter(Date >= input$periodRangeEts[1] &
+      ets_slice <- arima_tbl %>% dplyr::filter(Date >= input$periodRangeEts[1] &
                                                Date <= input$periodRangeEts[2])
       
       # generate cross validation metrics
@@ -2431,7 +2409,7 @@ function(input, output, session) {
     isolate({
       
       # slice dates
-      ets_slice <- ets_tbl %>% dplyr::filter(Date >= input$periodRangeEts[1] &
+      ets_slice <- arima_tbl %>% dplyr::filter(Date >= input$periodRangeEts[1] &
                                                Date <= input$periodRangeEts[2])
       
       
@@ -2458,7 +2436,7 @@ function(input, output, session) {
     isolate({
       
       # slice dates
-      ets_slice <- ets_tbl %>% dplyr::filter(Date >= input$periodRangeEts[1] &
+      ets_slice <- arima_tbl %>% dplyr::filter(Date >= input$periodRangeEts[1] &
                                                Date <= input$periodRangeEts[2])
       
       

@@ -5,7 +5,7 @@ title: "EDA"
 ### 1 Installing and launching the required R packages
 
 ```{r}
-pacman::p_load(tidyverse, ggiraph, ggstatsplot, patchwork, ggthemes, sf, terra, gstat, automap, tmap, viridis, zoo,rstantools)
+pacman::p_load(tidyverse, ggstatsplot, sf, terra, gstat, tmap, rstantools)
 ```
 
 ### 2 Importing the data
@@ -98,10 +98,13 @@ mpsz2019 <- st_read(dsn = "data/geospatial", layer = "MPSZ-2019")%>%
 #Inputs for prototyping
 input_nmax <- 3
 
+reso <- 200
+nr <- reso
+nc <- reso * 1.557971
 
 grid <- terra::rast(mpsz2019, 
-                    nrows = 690, 
-                    ncols = 1075)
+                    nrows = nr, 
+                    ncols = nc)
 
 xy <- terra::xyFromCell(grid, 
                         1:ncell(grid))

@@ -11,7 +11,7 @@ pacman::p_load(
   patchwork,
   plotly,
   lubridate,
-  caret,
+  # caret,
   performance,
   ggstatsplot,
   qqplotr

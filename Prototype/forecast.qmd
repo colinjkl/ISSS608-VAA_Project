@@ -13,15 +13,30 @@ editor: visual
 ---
 
 ```{r}
+
 pacman::p_load(
+  shiny,
   tidyverse,
   fable,
   tsibble,
   feasts,
   patchwork,
-  plotly,
   ggstatsplot,
-  fabletools
+  MLmetrics,
+  performance,
+  caret,
+  qqplotr,
+  lubridate,
+  ggthemes, 
+  sf, 
+  terra, 
+  gstat, 
+  automap, 
+  tmap, 
+  viridis, 
+  zoo,
+  rstantools,
+  urca
 )
 ```
 
@@ -36,8 +51,8 @@ df <- read_csv("data/dengue_climate_joined_by_week_transformed_diff.csv")
 ### Data Preparation
 
 ```{r}
-arima_ts <-  df %>% dplyr::select(Date, log_Cases)
-arima_tbl <- arima_ts %>% as_tsibble(index = Date) %>% fill_gaps(.full = TRUE) %>% fill(log_Cases)
+arima_ts <-  df %>% dplyr::select(Date, Cases)
+arima_tbl <- arima_ts %>% as_tsibble(index = Date) %>% fill_gaps(.full = TRUE) %>% fill(Cases)
 ```
 
 ### Model

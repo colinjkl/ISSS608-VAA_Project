@@ -10,7 +10,6 @@
 library(shiny)
 
 pacman::p_load(
-  shiny,
   tidyverse,
   fable,
   tsibble,
@@ -19,19 +18,14 @@ pacman::p_load(
   ggstatsplot,
   MLmetrics,
   performance,
-  caret,
   qqplotr,
-  lubridate,
-  ggthemes, 
-  sf, 
-  terra, 
-  gstat, 
-  automap, 
-  tmap, 
-  viridis, 
-  zoo,
+  sf,
+  terra,
+  gstat,
+  tmap,
   rstantools,
-  urca
+  urca,
+  see
 )
 
 climate_data <- read_csv("data/clean_climate_data.csv")
@@ -49,21 +43,20 @@ df$Date <- lubridate::ymd(lubridate::parse_date_time(paste(df$Year, df$WkNo, 1, 
 
 varList <- colnames(df[!grepl("^z_|^mm_|^log_|^diff|Year|WkNo|Cases|Date", colnames(df))])
 
-
-arima_ts <-  df %>% dplyr::select(Date, Cases)
-arima_tbl <- arima_ts %>% as_tsibble(index = Date) %>% fill_gaps(.full = TRUE) %>% fill(Cases)
+arima_tbl <- df %>% dplyr::select(Date, Cases) %>% as_tsibble(index = Date) %>% fill_gaps(.full = TRUE) %>% fill(Cases)
 
 start_date <- arima_tbl$Date[1]
 end_date <- arima_tbl$Date[nrow(arima_tbl)]
 
-
+rm(df,arima_tbl,climate_data)
+gc()
 
 
 # Define UI for application that draws a histogram
 fluidPage(
   
   # Application title
-  titlePanel("Climate and Dengue"),
+  titlePanel("Analysis of Climate Impact on Dengue Cases"),
   
   # Navigation panel on left
   navlistPanel(
@@ -104,7 +97,7 @@ fluidPage(
                ),
                
                # Anova stations 1
-               strong("Weather Station 1"),
+               strong("Weather Station"),
                wellPanel(
                  fluidRow(
                    selectInput(
@@ -115,19 +108,19 @@ fluidPage(
                    )
                  )
                ),
-               
-               # Anova stations 2
-               strong("Weather Station 2"),
-               wellPanel(
-                 fluidRow(
-                   selectInput(
-                     "stationsAnova2",
-                     "Select Station:",
-                     choices = stationList,
-                     selected = "Paya Lebar"
-                   )
-                 )
-               ),
+               # 
+               # # Anova stations 2
+               # strong("Weather Station 2"),
+               # wellPanel(
+               #   fluidRow(
+               #     selectInput(
+               #       "stationsAnova2",
+               #       "Select Station:",
+               #       choices = stationList,
+               #       selected = "Paya Lebar"
+               #     )
+               #   )
+               # ),
              ),
              # End column ----
              
@@ -135,15 +128,15 @@ fluidPage(
              column(
                6,
                # Anova first plot ----
-               strong("Anova 1"),
+               strong("Anova"),
                fluidRow(
                  plotOutput("anova_1")
                ),
                # Anova second plot ----
-               strong("Anova 2"),
-               fluidRow(
-                 plotOutput("anova_2")
-               )
+               # strong("Anova 2"),
+               # fluidRow(
+               #   plotOutput("anova_2")
+               # )
              )
     ),
     # End module ----
@@ -190,6 +183,13 @@ fluidPage(
                        inline = TRUE
                      ),
                      sliderInput(
+                       "resoGeoIdw",
+                       "Select resolution:",
+                       min = 50, max = 200,
+                       value = 150,
+                       width = "90%"
+                     ),
+                     sliderInput(
                        "nmaxGeoIdw",
                        "Select nmax:",
                        min = 1, max = 20,
@@ -216,6 +216,13 @@ fluidPage(
                        choiceNames = list("Mean", "Sum"),
                        choiceValues = list("mean", "sum"),
                        inline = TRUE
+                     ),
+                     sliderInput(
+                       "resoGeoKrig",
+                       "Select resolution:",
+                       min = 50, max = 200,
+                       value = 150,
+                       width = "90%"
                      ),
                      tags$table(
                        width = "100%",
