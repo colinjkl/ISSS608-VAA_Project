@@ -13,12 +13,6 @@ website:
         text: Introduction
       - href: index.qmd#figures
         text: At a Glance
-      - href: Poster/Poster.qmd
-        text: Poster
-      - href: Shinyapp/Shinyapp.qmd
-        text: Shiny APP
-      - href: User_Manual/User_Manual.qmd
-        text: User Manual
       - href: index.qmd#storyboard
         text: Our Works
   page-footer: 

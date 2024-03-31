@@ -2,4 +2,4 @@
 title: "User Manual"
 ---
 
-![Sorry! Still Work in Progress](/images/bugcat wip.gif){fig-align="center"}
+[![Click here to access R Shiny User Manual](/images/user manual.avif){fig-align="center"}](Project User Manual.pdf)

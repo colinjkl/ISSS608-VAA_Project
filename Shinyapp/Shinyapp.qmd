@@ -2,6 +2,4 @@
 title: "Shinyapp"
 ---
 
-![Sorry! Still Work in Progress](/images/bugcat%20wip.gif){fig-align="center"}
-
-Test Server: <https://prototype-isss608vaa.shinyapps.io/ProjectShinyApp/>
+[![Click here to access R Shiny Application](/images/application.webp){fig-align="center" width="700"}](https://prototype-isss608vaa.shinyapps.io/ProjectShinyApp/)
