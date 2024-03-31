@@ -1,5 +1,15 @@
 ---
 title: "User Manual"
+description: "A step-by-step guide on how to use the Shiny App"
+date: "30-Mar-2024"
+date-modified: "last-modified"
+execute: 
+  eval: true
+  echo: true
+  warning: false
+editor: visual
 ---
 
-[![Click here to access R Shiny User Manual](/images/user manual.avif){fig-align="center"}](Project User Manual.pdf)
+[![](/images/user%20manual.avif){fig-align="center"}](Project%20User%20Manual.pdf)
+
+<a href="Project User Manual.pdf" target="_blank">Click here to access R Shiny User Manual</a>

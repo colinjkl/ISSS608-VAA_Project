@@ -2,4 +2,6 @@
 title: "Shinyapp"
 ---
 
-[![Click here to access R Shiny Application](/images/application.webp){fig-align="center" width="700"}](https://prototype-isss608vaa.shinyapps.io/ProjectShinyApp/)
+[![](/images/application.webp){fig-align="center" width="1600"}](https://prototype-isss608vaa.shinyapps.io/ProjectShinyApp/)
+
+[Click here to access R Shiny Application](https://prototype-isss608vaa.shinyapps.io/ProjectShinyApp/)
